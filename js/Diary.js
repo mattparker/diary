@@ -31,7 +31,7 @@ version: 1.0
       
       
       
-        PX_PER_HOUR = 30,
+        PX_PER_HOUR = 20,
      
      
      
