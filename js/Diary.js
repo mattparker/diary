@@ -1658,7 +1658,7 @@ version: 1.0
            /**
             * @attribute endDate
             * @description Final date currently displayed on Diary
-            * @param {Object} (Optional) Date
+            * @type {Date} (Optional)
             * @default 7 days on from startDate
             */
            this.setAttributeConfig( 'endDate' );
@@ -1667,7 +1667,7 @@ version: 1.0
            /**
             * @attribute startDate
             * @description When to start the diary display from
-            * @param {Object} Date
+            * @type {Date}
             */
            this.setAttributeConfig( 'startDate' , {
              method: function(v){
@@ -1679,7 +1679,7 @@ version: 1.0
            /**
             * @attribute width
             * @description Overall width of Diary (in pixels)
-            * @param {Number} (Optional) Will use element styled width if no value provided and it has one
+            * @type Number (Optional) Will use element styled width if no value provided and it has one
             */
     			 this.setAttributeConfig( "width" , {
     			   method: function( v ){
@@ -1697,7 +1697,7 @@ version: 1.0
            /**
             * @attribute scaleColumns
             * @description Whether to scale columns to width
-            * @param {Boolean}
+            * @type Boolean
             * @default true
             */			 
           this.setAttributeConfig( 'scaleColumns' , {
@@ -1726,7 +1726,7 @@ version: 1.0
             * in the main window (the rest are above and below the scroll.
             * <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>.
             * The only format available currently is "week".
-            * @param {Boolean}
+            * @type Object
             * @default <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>
             */	
            this.setAttributeConfig( 'display' , {
@@ -1740,7 +1740,7 @@ version: 1.0
            /**
             * @attribute calenderNav
             * @description Whether to use a YAHOO.widget.Calendar in the navigation.
-            * @param {Boolean}
+            * @type Boolean
             * @default true
             */			 
            this.setAttributeConfig( 'calenderNav', {
@@ -1760,15 +1760,15 @@ version: 1.0
             * holding the text of the item.  These can be used by addItemFilter
             * to show or hide items by category.
             *
-            * @param {Object}
+            * @type {Object}
             * @default <pre> 
-                     { DTSTART: "DTSTART",
-                       DTEND:   "DTEND",
-                       SUMMARY: "SUMMARY",
-                       DESCRIPTION: "DESCRIPTION",
-                       URL: "URL",
-                       backClass: "backClass",
-                       detailClass: "detailClass" }</pre>
+             &nbsp;        { DTSTART: "DTSTART",
+             &nbsp;          DTEND:   "DTEND",
+             &nbsp;          SUMMARY: "SUMMARY",
+             &nbsp;          DESCRIPTION: "DESCRIPTION",
+             &nbsp;          URL: "URL",
+             &nbsp;          backClass: "backClass",
+             &nbsp;          detailClass: "detailClass" }</pre>
             */	
             this.setAttributeConfig( 'fieldMap' , {
             
@@ -1799,7 +1799,7 @@ version: 1.0
             * @attribute titleString
             * @description String to use as template for title.  You can use 
             * strftime type identifiers.
-            * @param {String}
+            * @type String
             * @default "Diary w/c %A, %e %B %Y"
             */	
            this.setAttributeConfig( "titleString" , {
@@ -1812,7 +1812,7 @@ version: 1.0
             * @attribute itemClickCreateNew
             * @description Whether you can click and drag on an existing item 
             * to start creating a new one.
-            * @param {Boolean}
+            * @type Boolean
             * @default false
             */
            this.setAttributeConfig( "itemClickCreateNew", {
@@ -1825,8 +1825,8 @@ version: 1.0
           /**
            * @attribute allowCreateMultiDayItems
            * @description  Whether, when creating new items, they're allowed to span multi days
-           * Default: false
-           * @param {Boolean}
+           * @default: false
+           * @type Boolean
            */ 
            this.setAttributeConfig( "allowCreateMultiDayItems", {
              validator: Lang.isBoolean,
@@ -1839,7 +1839,7 @@ version: 1.0
            * @attribute tooltip
            * @description  Whether to use tooltip for mouseover events to show details
            * @default: false.
-           * @param {Boolean}
+           * @type Boolean
            */ 
            this.setAttributeConfig( "tooltip", {
              validator: Lang.isBoolean,
@@ -3163,7 +3163,32 @@ version: 1.0
         this.get("element").removeChild( this._calHolder );
       }
 
-  
+
+
+
+        /**
+         * @event itemBeforeStartMove
+         * @description Fired before everything starts moving.  Return false to cancel move.
+         * @param oArgs.item   DiaryItem that's about to be moved.
+         */  
+        /**
+         * @event itemBeforeEndMove
+         * @description fired when an item is moved or resized (ie the times change).
+         * Return false to cancel the resize/move
+         * @param oArgs.from   Object literal containing original DTSTART and DTEND
+         * @param oArgs.to     Object literal containing final DTSTART and DTEND
+         * @param oArgs.item   DiaryItem that's being moved
+         * @param oArgs.originEvent    Original event from resize/dragdrop passed through.
+         */
+
+        /**
+         * @event itemEndMove
+         * @description fired when an item is moved or resized (ie the times change)
+         * @param oArgs.from   Object literal containing original DTSTART and DTEND
+         * @param oArgs.to     Object literal containing final DTSTART and DTEND
+         * @param oArgs.item   DiaryItem that's being moved
+         * @param oArgs.originEvent    Original event from resize/dragdrop passed through.
+         */
   });
   
   
@@ -3172,4 +3197,4 @@ version: 1.0
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "002"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "003"});
