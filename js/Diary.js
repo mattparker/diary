@@ -1440,15 +1440,7 @@ version: 1.0
             newEl,
             backgroundEl = this._backgroundEl,
             containerEl = document.createElement( "div" ),
-            baseEl = document.createElement( "div" ),
-            labelEl = document.createElement( "span" );
-        
-        // label for the date
-        labelEl.appendChild( document.createTextNode( this.get("diary").renderDateLabel( this.get("coldate") ) ) );
-        Dom.addClass( labelEl, "lplt-diary-collabel" );
-        Dom.setStyle( labelEl, "width" , (this.get("width") - 4) + "px");
-  
-        Dom.insertBefore( labelEl, parent.firstChild );
+            baseEl = document.createElement( "div" );
         
         // container:
         Dom.addClass( containerEl , "lplt-diaryday-container" );
@@ -2834,7 +2826,16 @@ version: 1.0
             calContainer, cal, calId, calShowButton,
             left = document.createElement( "a" ),
             right = document.createElement( "a" ),
-            today = document.createElement( "a" );
+            today = document.createElement( "a" ),
+            dayLabels = document.createElement("div"),
+            labelEl = document.createElement("span"),
+            thisLabel,
+            dayCounter = 0;
+
+        
+        
+  
+        Dom.insertBefore( labelEl, parent.firstChild );
             
         Dom.addClass( navContainer , "lplt-diary-nav" );
         Dom.addClass( titleContainer , "lplt-diary-title" );
@@ -2885,6 +2886,25 @@ version: 1.0
 
           this._navCalendar = cal;
         }
+        
+                    
+            
+        // label for the date
+        Dom.addClass(dayLabels, "lplt-diary-collabel-container");
+        Dom.addClass( labelEl, "lplt-diary-collabel" );
+        Dom.setStyle( labelEl, "width" , (this._colWidth ) + "px");
+        // go through the days adding labels:
+        for (dayCounter = 0; dayCounter < 7; dayCounter += 1 ) {
+        
+          thisLabel = labelEl.cloneNode(false);
+          thisLabel.appendChild( 
+              document.createTextNode( 
+                  this.renderDateLabel( 
+                      new Date(this._colToDayMap[ dayCounter ]))));
+          dayLabels.appendChild(thisLabel);
+        }
+        navContainer.appendChild(dayLabels);
+        
       
         Ev.on( left, "click" , this._doPrevious , this , true );
         Ev.on( right , "click" , this._doNext , this , true );
@@ -2929,7 +2949,7 @@ version: 1.0
        */
       _renderDays: function() {
       
-        var i, dayHeight;
+        var i, dayHeight, scrollTop;
       
 
         for( i = this.get("startDate").getTime() ; i < this.get("startDate").getTime() + 604800000 ; i += 86400000 ) {
@@ -2946,9 +2966,15 @@ version: 1.0
         dayHeight = ( this.get("display").endTime - this.get("display").startTime ) * PX_PER_HOUR; 
         Dom.getElementsByClassName( "lplt-diaryday-container" , "div", this._calHolder, 
                                     function(n){Dom.setStyle( n, "height" , dayHeight + "px" ); } );
-         
-        this._calHolder.scrollTop = this.get("display").startTime * PX_PER_HOUR;
 
+
+        scrollTop = this.get("display").startTime * PX_PER_HOUR;
+        this._calHolder.scrollTop = scrollTop; 
+
+        //move the labels
+        /*Dom.getElementsByClassName( "lplt-diary-collabel" , "span", this.get("element"), 
+                                    function(n){Dom.setStyle( n, "top" , scrollTop + "px" ); } );
+          */                          
       },
       
       /**
@@ -3145,4 +3171,4 @@ version: 1.0
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "001"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "002"});

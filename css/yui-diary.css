@@ -62,21 +62,24 @@
  position: relative;
  margin-top:20px;
 }
+.lplt-diary-collabel-container{
+ height: 18px;
+ text-align:left;
+}
 .lplt-diary-collabel{
  text-align: center;
  display:block;
+ float:left;
  color:white;
  background-color: #8899DD;
  font-size:90%;
  font-weight: bold;
  /*margin:-2px -2px 2px;*/
- padding:3px;
- position: absolute;
+ padding:2px;
  z-index: 4;
  overflow:hidden;
  height:18px;
- margin-left:-2px;
- margin-top:-2px;
+
 }
 .lplt-diary-selector{
   position: absolute;
@@ -99,7 +102,7 @@
 position:relative;
 text-align:center;
 width:100%;
-height:25px;
+height:45px;
 background-color: #EFF4FF;
 }
 .lplt-diary-nav .lplt-diary-title{
