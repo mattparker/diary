@@ -6,6 +6,7 @@
 .lplt-diary{
  text-align: left;
  overflow:auto;
+ position: relative;
 }
 .lplt-diary-day{
   width: 150px;
@@ -60,7 +61,7 @@
 }
 .lplt-diaryday-container{
  position: relative;
- margin-top:20px;
+/*  overflow:hidden;*/
 }
 .lplt-diary-collabel-container{
  height: 18px;
@@ -87,6 +88,7 @@
   border: 1px dotted #8899DD;
   border-width: 2px 1px;
   background-color: #EDF5FF;
+  position:fixed;
 }
 .lplt-diary-background{
   border: 1px solid #A5A8AB;

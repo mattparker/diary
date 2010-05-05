@@ -1958,9 +1958,9 @@ version: 1.0
              return;
            }
            
-           if( ( Dom.hasClass( target, "lplt-diary-item" ) 
-                 || Dom.getAncestorByClassName(target, "lplt-diary-item" ) ) 
-                && !this.get( "itemClickCreateNew" ) ){
+           if( ( Dom.hasClass( target, "lplt-diary-item" ) || 
+                 Dom.getAncestorByClassName(target, "lplt-diary-item" ) ) && 
+                 !this.get( "itemClickCreateNew" ) ){
              return;
            }
   
@@ -1993,14 +1993,15 @@ version: 1.0
     				 Dom.setStyle( div, 'top' , y + 'px' );
     				 Dom.setStyle( div, 'width' , '0px' );
     				 Dom.setStyle( div , 'height' , '0px' );
+
     
-    				 
+   				 
     				 sel.selectorDiv = div;
-    				 
-    				 dayEl.appendChild( div );
-    				 
-    				 
-    
+    				 // append to the data el
+    				 Dom.getElementsByClassName("lplt-diary-datacontainer", 
+                                        "div", dayEl, 
+                                        function(n) {n.appendChild(div);} );
+
     				 Ev.stopEvent(ev);
   				}
   				 
