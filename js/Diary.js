@@ -1838,7 +1838,7 @@ version: 1.0
           /**
            * @attribute tooltip
            * @description  Whether to use tooltip for mouseover events to show details
-           * @default: false.
+           * @default: false
            * @type Boolean
            */ 
            this.setAttributeConfig( "tooltip", {
@@ -1846,7 +1846,18 @@ version: 1.0
              value: false
            });        
                   
-           
+          
+   
+          /**
+           * @attribute animate
+           * @description  Whether to use animation when moving items around
+           * @default: false
+           * @type Boolean
+           */ 
+           this.setAttributeConfig( "useAnimation", {
+             validator: Lang.isBoolean,
+             value: false
+           });              
          			 
 			},
 
@@ -2199,7 +2210,12 @@ version: 1.0
         
         
         // Alter the config passed to DiaryItem:
-        newConfig = Lang.merge( oCfg, { resizeTop: true, resizeBottom: true ,enableDragDrop: true } );
+        newConfig = Lang.merge( oCfg, { 
+                resizeTop: true, 
+                resizeBottom: true ,
+                enableDragDrop: true,
+                useAnimation: this.get("useAnimation")
+        });
         
         
         
