@@ -16,6 +16,7 @@
   
   
 }
+
 .lplt-diary-hourblock{
   height: 19px;
   border-bottom: 1px dotted #DCDDDF;
@@ -50,6 +51,10 @@
   -moz-border-radius-bottomright:3px;
   -moz-border-radius-topleft:3px;
   -moz-border-radius-topright:3px;
+  -webkit-border-top-left-radius:3px;
+  -webkit-border-top-right-radius:3px;
+  -webkit-border-bottom-left-radius:3px;
+  -webkit-border-bottom-right-radius:3px;
 }
 
 .lplt-diary-item-hidden{
@@ -64,15 +69,15 @@
 /*  overflow:hidden;*/
 }
 .lplt-diary-collabel-container{
- height: 18px;
- text-align:left;
+background:transparent url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 -1400px;
+height:24px;
+text-align:left;
 }
 .lplt-diary-collabel{
  text-align: center;
  display:block;
  float:left;
  color:white;
- background-color: #8899DD;
  font-size:90%;
  font-weight: bold;
  /*margin:-2px -2px 2px;*/
@@ -101,11 +106,11 @@
 
 
 .lplt-diary-nav  {
+background:#EFF4FF url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 0;
+height:45px;
 position:relative;
 text-align:center;
 width:100%;
-height:45px;
-background-color: #EFF4FF;
 }
 .lplt-diary-nav .lplt-diary-title{
  font-size: 120%;
@@ -114,9 +119,6 @@ background-color: #EFF4FF;
  width: 100%;
 }
 .yui-skin-sam .lplt-diary-nav .lplt-diary-nav-right {
--moz-background-clip:border;
--moz-background-inline-policy:continuous;
--moz-background-origin:padding;
 background:transparent url(diary-sprite.png) no-repeat scroll 0 -500px;
 bottom:0;
 cursor:pointer;
@@ -137,45 +139,32 @@ text-indent:-10000em;
 z-index:1;
 }
 
-.lplt-diary-nav .lplt-diary-nav-today{
--moz-background-clip:border;
--moz-background-inline-policy:continuous;
--moz-background-origin:padding;
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -300px;
+
+.lplt-diary-nav .lplt-diary-nav-today,
+.lplt-diary-nav .lplt-diary-nav-left,
+.lplt-diary-nav .lplt-diary-nav-calbutton{
 bottom:0;
 cursor:pointer;
 height:15px;
-margin-right:10px;
-right:18px;
 top:2px;
 width:25px;
+margin-right:10px;
 }
 
-.yui-skin-sam .lplt-diary-nav .lplt-diary-nav-left {
--moz-background-clip:border;
--moz-background-inline-policy:continuous;
--moz-background-origin:padding;
+.lplt-diary-nav .lplt-diary-nav-today{
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -300px;
+right:18px;
+}
+
+.lplt-diary-nav .lplt-diary-nav-left {
 background:transparent url(diary-sprite.png) no-repeat scroll 0 -450px;
-bottom:0;
-cursor:pointer;
-height:15px;
 right:83px;
 margin-left:10px;
-top:2px;
-width:25px;
 }
 .lplt-diary-nav .lplt-diary-nav-calbutton{
--moz-background-clip:border;
--moz-background-inline-policy:continuous;
--moz-background-origin:padding;
 background:transparent url(diary-sprite.png) no-repeat scroll 0 -350px;
-bottom:0;
-cursor:pointer;
-height:15px;
 right:55px;
 margin-left:10px;
-top:2px;
-width:25px;
 }
 
 .lplt-diary-nav .lplt-diary-nav-cal{
