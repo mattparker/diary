@@ -1,110 +1,54 @@
-.lplt-diary-container{
- border: 1px solid #DCDDDF;
- padding: 2px;
-}
 
-.lplt-diary{
+
+.yui-diary-container .yui-diary {
  text-align: left;
  overflow:auto;
  position: relative;
 }
-.lplt-diary-day{
-  width: 150px;
+.yui-diary-container .yui-diary-day{
   float: left;
-
   padding:2px;
-  
-  
 }
 
-.lplt-diary-hourblock{
+.yui-diary-container .yui-diary-hourblock{
   height: 19px;
-  border-bottom: 1px dotted #DCDDDF;
-  font-size: 80%;
-  color: gray;
 }
-.lplt-diary-hourblock.h0,
-.lplt-diary-hourblock.h1,
-.lplt-diary-hourblock.h2,
-.lplt-diary-hourblock.h3,
-.lplt-diary-hourblock.h4,
-.lplt-diary-hourblock.h5,
-.lplt-diary-hourblock.h6,
-.lplt-diary-hourblock.h7,
-.lplt-diary-hourblock.h8,
-.lplt-diary-hourblock.h19,
-.lplt-diary-hourblock.h20,
-.lplt-diary-hourblock.h21,
-.lplt-diary-hourblock.h22,
-.lplt-diary-hourblock.h23{
-  background-color: #EFF4FF;
-}
-.lplt-diary-item{
+
+.yui-diary-container .yui-diary-item{
   position: absolute;
-  font-size: 9px;
-  border: 1px solid #8899DD;
-  border-width: 2px 1px;
-  background-color: #EDF5FF;
   margin: 0;
   overflow:hidden;
-  -moz-border-radius-bottomleft:3px;
-  -moz-border-radius-bottomright:3px;
-  -moz-border-radius-topleft:3px;
-  -moz-border-radius-topright:3px;
-  -webkit-border-top-left-radius:3px;
-  -webkit-border-top-right-radius:3px;
-  -webkit-border-bottom-left-radius:3px;
-  -webkit-border-bottom-right-radius:3px;
 }
 
-.lplt-diary-item-hidden{
+.yui-diary-container .yui-diary-item-hidden{
  display: none;
  visibility: hidden;
 }
-.lplt-diary-datacontainer{
+.yui-diary-container .yui-diary-datacontainer{
 
 }
-.lplt-diaryday-container{
+.yui-diary-container .yui-diaryday-container{
  position: relative;
-/*  overflow:hidden;*/
 }
-.lplt-diary-collabel-container{
-background:transparent url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 -1400px;
+.yui-diary-container .yui-diary-collabel-container{
 height:24px;
 text-align:left;
 }
-.lplt-diary-collabel{
+.yui-diary-container .yui-diary-collabel{
  text-align: center;
  display:block;
  float:left;
- color:white;
- font-size:90%;
- font-weight: bold;
- /*margin:-2px -2px 2px;*/
  padding:2px;
  z-index: 4;
  overflow:hidden;
  height:18px;
+}
 
+.yui-diary-container .yui-diary-selector{
+  position: fixed;
+  border: 1px solid black;
 }
-.lplt-diary-selector{
-  position: absolute;
-  font-size: 9px;
-  border: 1px dotted #8899DD;
-  border-width: 2px 1px;
-  background-color: #EDF5FF;
-  position:fixed;
-    -moz-border-radius-bottomleft:3px;
-  -moz-border-radius-bottomright:3px;
-  -moz-border-radius-topleft:3px;
-  -moz-border-radius-topright:3px;
-  -webkit-border-top-left-radius:3px;
-  -webkit-border-top-right-radius:3px;
-  -webkit-border-bottom-left-radius:3px;
-  -webkit-border-bottom-right-radius:3px;
-}
-.lplt-diary-background{
-  border: 1px solid #A5A8AB;
+.yui-diary-container .yui-diary-background{
   border-left:0;
   border-bottom:0;
 }
@@ -113,21 +57,14 @@ text-align:left;
 
 
 
-.lplt-diary-nav  {
-background:#EFF4FF url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 0;
+.yui-diary-container .yui-diary-nav  {
 height:45px;
 position:relative;
 text-align:center;
 width:100%;
 }
-.lplt-diary-nav .lplt-diary-title{
- font-size: 120%;
- font-weight: bold;
- text-align: left;
- width: 100%;
-}
-.yui-skin-sam .lplt-diary-nav .lplt-diary-nav-right {
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -500px;
+
+.yui-diary-container .yui-diary-nav .yui-diary-nav-right {
 bottom:0;
 cursor:pointer;
 height:15px;
@@ -137,10 +74,10 @@ top:2px;
 width:25px;
 }
 
-.lplt-diary-nav .lplt-diary-nav-right,
-.lplt-diary-nav .lplt-diary-nav-left,
-.lplt-diary-nav .lplt-diary-nav-today,
-.lplt-diary-nav .lplt-diary-nav-calbutton{
+.yui-diary-container .yui-diary-nav .yui-diary-nav-right,
+.yui-diary-container .yui-diary-nav .yui-diary-nav-left,
+.yui-diary-container .yui-diary-nav .yui-diary-nav-today,
+.yui-diary-container .yui-diary-nav .yui-diary-nav-calbutton{
 overflow:hidden;
 position:absolute;
 text-indent:-10000em;
@@ -148,9 +85,9 @@ z-index:1;
 }
 
 
-.lplt-diary-nav .lplt-diary-nav-today,
-.lplt-diary-nav .lplt-diary-nav-left,
-.lplt-diary-nav .lplt-diary-nav-calbutton{
+.yui-diary-container .yui-diary-nav .yui-diary-nav-today,
+.yui-diary-container .yui-diary-nav .yui-diary-nav-left,
+.yui-diary-container .yui-diary-nav .yui-diary-nav-calbutton{
 bottom:0;
 cursor:pointer;
 height:15px;
@@ -159,23 +96,9 @@ width:25px;
 margin-right:10px;
 }
 
-.lplt-diary-nav .lplt-diary-nav-today{
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -300px;
-right:18px;
-}
 
-.lplt-diary-nav .lplt-diary-nav-left {
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -450px;
-right:83px;
-margin-left:10px;
-}
-.lplt-diary-nav .lplt-diary-nav-calbutton{
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -350px;
-right:55px;
-margin-left:10px;
-}
 
-.lplt-diary-nav .lplt-diary-nav-cal{
+.yui-diary-container .yui-diary-nav .yui-diary-nav-cal{
 position:absolute;
 z-index:5;
 background-color: white;

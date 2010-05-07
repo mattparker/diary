@@ -1,0 +1,104 @@
+.yui-skin-sam .yui-diary-container{
+ border: 1px solid #DCDDDF;
+ padding:2px;
+}
+
+.yui-skin-sam  .yui-diary-container .yui-diary-hourblock{
+  height: 19px;
+  border-bottom: 1px dotted #DCDDDF;
+  font-size: 80%;
+  color: gray;
+}
+
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h0,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h1,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h2,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h3,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h4,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h5,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h6,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h7,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h8,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h19,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h20,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h21,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h22,
+.yui-skin-sam .yui-diary-container .yui-diary-hourblock.h23{
+  background-color: #EFF4FF;
+}
+
+.yui-skin-sam .yui-diary-container .yui-diary-item{
+  font-size: 9px;
+  border: 1px solid #8899DD;
+  border-width: 2px 1px;
+  background-color: #EDF5FF;
+  -moz-border-radius-bottomleft:3px;
+  -moz-border-radius-bottomright:3px;
+  -moz-border-radius-topleft:3px;
+  -moz-border-radius-topright:3px;
+  -webkit-border-top-left-radius:3px;
+  -webkit-border-top-right-radius:3px;
+  -webkit-border-bottom-left-radius:3px;
+  -webkit-border-bottom-right-radius:3px;
+}
+
+.yui-skin-sam .yui-diary-container .yui-diary-collabel-container{
+background:transparent url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 -1400px;
+}
+
+.yui-skin-sam .yui-diary-container .yui-diary-collabel{
+ color:white;
+ font-size:90%;
+ font-weight: bold;
+}
+
+.yui-skin-sam .yui-diary-container .yui-diary-selector{
+  font-size: 9px;
+  border: 1px dotted #8899DD;
+  border-width: 2px 1px;
+  background-color: #EDF5FF;
+  -moz-border-radius-bottomleft:3px;
+  -moz-border-radius-bottomright:3px;
+  -moz-border-radius-topleft:3px;
+  -moz-border-radius-topright:3px;
+  -webkit-border-top-left-radius:3px;
+  -webkit-border-top-right-radius:3px;
+  -webkit-border-bottom-left-radius:3px;
+  -webkit-border-bottom-right-radius:3px;
+}
+
+.yui-skin-sam .yui-diary-container .yui-diary-background{
+  border: 1px solid #A5A8AB;
+  border-left:0 none;
+  border-bottom:0 none;
+}
+
+
+.yui-skin-sam .yui-diary-container .yui-diary-nav  {
+background:#EFF4FF url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 0;
+}
+.yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-title{
+ font-size: 120%;
+ font-weight: bold;
+ text-align: left;
+ width: 100%;
+}
+.yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-right {
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -500px;
+}
+
+.yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-today{
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -300px;
+right:18px;
+}
+
+.yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-left {
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -450px;
+right:83px;
+margin-left:10px;
+}
+.yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-calbutton{
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -350px;
+right:55px;
+margin-left:10px;
+}

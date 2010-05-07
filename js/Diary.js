@@ -30,11 +30,30 @@ version: 1.0
         Lang = YAHOO.lang,
       
       
-      
-        PX_PER_HOUR = 20,
+
      
      
-     
+        CLASS_DIARY                    = "yui-diary",
+        CLASS_DIARY_ITEM_DETAILS       = "yui-diary-item-details" ,
+        CLASS_DIARY_ITEM               = "yui-diary-item",
+        CLASS_DIARY_DATACONTAINER      = "yui-diary-datacontainer",
+        CLASS_DIARYDAY_CONTAINER       = "yui-diaryday-container",
+        CLASS_DIARY_BACKGROUND         = "yui-diary-background",
+        CLASS_DIARY_HOURBLOCK          = "yui-diary-hourblock",
+        CLASS_DIARY_DAY                = "yui-diary-day",
+        CLASS_DIARY_CONTAINER          = "yui-diary-container",
+        CLASS_DIARY_NAV                = "yui-diary-nav",
+        CLASS_DIARY_TITLE              = "yui-diary-title",
+        CLASS_DIARY_NAV_LEFT           = "yui-diary-nav-left",
+        CLASS_DIARY_NAV_RIGHT          = "yui-diary-nav-right",
+        CLASS_DIARY_NAV_TODAY          = "yui-diary-nav-today",
+        CLASS_DIARY_NAV_CAL            = "yui-diary-nav-cal",
+        CLASS_DIARY_NAV_CALBUTTON      = "yui-diary-nav-calbutton",
+        CLASS_DIARY_COLLABEL_CONTAINER = "yui-diary-collabel-container",
+        CLASS_DIARY_COLLABEL           = "yui-diary-collabel",
+        CLASS_DIARY_ITEM_HIDDEN        = "yui-diary-item-hidden",
+        CLASS_DIARY_SELECTOR           = "yui-diary-selector",
+        
   /**
    *
    * DiaryItem class for individual items in the Diary.
@@ -64,7 +83,7 @@ version: 1.0
         oCfg.draggable = false;
         oCfg.hiddenHandles = true;
         oCfg.proxy = false;
-        oCfg.yTicks = parseInt(PX_PER_HOUR / 4, 10);
+        oCfg.yTicks = parseInt(oCfg.pxPerHour / 4, 10);
 
 
         // add a drag drop separately
@@ -85,7 +104,7 @@ version: 1.0
         if (this.dragdrop) {
             this.dragdrop.setYConstraint( 
                 this.calculateTop(), 
-                parseInt((24 * PX_PER_HOUR) - (this.calculateTop() / 3600), 10), 
+                parseInt((24 * oCfg.pxPerHour ) - (this.calculateTop() / 3600), 10), 
                 oCfg.yTicks 
             );
         }
@@ -358,7 +377,16 @@ version: 1.0
          });
          
 
-
+          /**
+           * @attribute pxPerHour
+           * @description  Number of pixels per hour
+           * @default: 20
+           * @type Number
+           */ 
+           this.setAttributeConfig( "pxPerHour", {
+             validator: Lang.isNumber,
+             value: 20
+           });    
      
       },
       
@@ -371,7 +399,7 @@ version: 1.0
       initContent: function() {
 
         var detailsEl = document.createElement("div");
-        Dom.addClass(detailsEl, "lplt-diary-item-details");
+        Dom.addClass(detailsEl, CLASS_DIARY_ITEM_DETAILS );
         Dom.addClass(detailsEl, this.get("detailClass"));
         this.get("element").appendChild(detailsEl);
         Dom.addClass(this.get("element"), this.get("backClass"));
@@ -766,7 +794,7 @@ version: 1.0
        */
       calculateHeight: function(){
       
-        return ( ( this.getDisplayEndTimeSecs() - this.getDisplayStartTimeSecs() ) * ( PX_PER_HOUR /3600)  - 2);
+        return ( ( this.getDisplayEndTimeSecs() - this.getDisplayStartTimeSecs() ) * ( this.get("pxPerHour") /3600)  - 2);
       
       },
 
@@ -776,7 +804,7 @@ version: 1.0
        * @return {Int}
        */      
       calculateTop: function(){
-        return ( ( this.getDisplayStartTimeSecs() ) * ( PX_PER_HOUR / 3600) );
+        return ( ( this.getDisplayStartTimeSecs() ) * ( this.get("pxPerHour") / 3600) );
       },
 
       /**
@@ -784,11 +812,14 @@ version: 1.0
        * @description Calculate the start time (seconds) based on position
        * @return {Int}
        */      
-      calcStartFromPosition: function( t ) {
+      calcStartFromPosition: function( t, pxPerHour) {
          if( t === undefined ) {
            t = parseInt( this.getStyle("top") , 10 );
-         }   
-         return parseInt( ( ( t * 3600 ) / PX_PER_HOUR ), 10 );
+         }
+         if(pxPerHour === undefined) {
+           pxPerHour = this.get("pxPerHour");
+         }
+         return parseInt( ( ( t * 3600 ) / pxPerHour), 10 );
       
       },
 
@@ -797,7 +828,7 @@ version: 1.0
        * @description Calculate the end time (seconds) based on position
        * @return {Int}
        */        
-      calcEndFromPosition: function( h , t) {
+      calcEndFromPosition: function( h , t, pxPerHour) {
       
          if( h === undefined ){
            h = parseInt(this.getStyle("height"),10);
@@ -805,8 +836,10 @@ version: 1.0
          if( t === undefined ) {
            t = parseInt( this.getStyle("top") , 10 );
          }
-      
-         return parseInt( ( ( ( h + t ) * 3600 ) / PX_PER_HOUR ), 10 );
+         if(pxPerHour === undefined) {
+           pxPerHour = this.get("pxPerHour");
+         }      
+         return parseInt( ( ( ( h + t ) * 3600 ) / pxPerHour), 10 );
       
       },
 
@@ -871,7 +904,7 @@ version: 1.0
           this.anim.attributes = {  height: { to: h }, width: { to : w } };
           this.anim.animate();
         }
-        this.addClass( "lplt-diary-item" );
+        this.addClass( CLASS_DIARY_ITEM );
 
 
       },
@@ -1202,7 +1235,7 @@ version: 1.0
     
     // Add some elements
     var dataEl = document.createElement( "div" );
-    Dom.addClass( dataEl , "lplt-diary-datacontainer" );
+    Dom.addClass( dataEl , CLASS_DIARY_DATACONTAINER );
     this.get("element").appendChild( dataEl );
     this._dataEl = dataEl;
 
@@ -1443,13 +1476,13 @@ version: 1.0
             baseEl = document.createElement( "div" );
         
         // container:
-        Dom.addClass( containerEl , "lplt-diaryday-container" );
+        Dom.addClass( containerEl , CLASS_DIARYDAY_CONTAINER );
         
         // container for background:
-        Dom.addClass( backgroundEl, "lplt-diary-background" );
+        Dom.addClass( backgroundEl, CLASS_DIARY_BACKGROUND );
        
-        Dom.addClass( baseEl , "lplt-diary-hourblock" );
-        Dom.setStyle( baseEl, "height" , PX_PER_HOUR - 1 );
+        Dom.addClass( baseEl , CLASS_DIARY_HOURBLOCK);
+        Dom.setStyle( baseEl, "height" , (this.get("diary").get("pxPerHour") - 1) + "px");
         
         
         // add times
@@ -1857,7 +1890,20 @@ version: 1.0
            this.setAttributeConfig( "useAnimation", {
              validator: Lang.isBoolean,
              value: false
-           });              
+           }); 
+           
+   
+          /**
+           * @attribute pxPerHour
+           * @description  Number of pixels per hour
+           * @default: 20
+           * @type Number
+           */ 
+           this.setAttributeConfig( "pxPerHour", {
+             validator: Lang.isNumber,
+             value: 20
+           });            
+                        
          			 
 			},
 
@@ -1877,13 +1923,13 @@ version: 1.0
           this.on( "parseData" , this.render, this );
           
           // click and drag new items
-          Ev.delegate( this.get("element") , "mousedown", this._startNewItem , "div.lplt-diary" , this , true );
+          Ev.delegate( this.get("element") , "mousedown", this._startNewItem , "div." + CLASS_DIARY , this , true );
           
           // click on existing diary items
-          Ev.delegate( this.get("element"), "click" , this.handleItemClick , "div.lplt-diary-item", this, true);
+          Ev.delegate( this.get("element"), "click" , this.handleItemClick , "div." + CLASS_DIARY_ITEM, this, true);
           
           // mouseover
-          Ev.delegate( this.get("element"), "mouseenter", this.handleItemMouseEnter, "div.lplt-diary-item", this, true);
+          Ev.delegate( this.get("element"), "mouseenter", this.handleItemMouseEnter, "div." + CLASS_DIARY_ITEM, this, true);
        
        },
 
@@ -1902,7 +1948,7 @@ version: 1.0
 
 
         
-         Dom.addClass( calHolder, "lplt-diary" );
+         Dom.addClass( calHolder, CLASS_DIARY );
          this._calHolder = calHolder;
          this.get("element").appendChild(calHolder );
                 
@@ -1914,7 +1960,7 @@ version: 1.0
   
           
           
-          dayEl.className = "lplt-diary-day";
+          dayEl.className = CLASS_DIARY_DAY;
           
           // loop through from start to end adding a new DiaryDay for each
           for( i = zeroTime ; i < zeroTime + 604800000 ; i += 86400000 ) {
@@ -1966,13 +2012,14 @@ version: 1.0
             * @param oArgs.originEvent  Event passed through
             */
            if( false === this.fireEvent( "itemBeforeStartCreate", {originEvent: ev } ) ){
+
              return;
            }
            
-           if( ( Dom.hasClass( target, "lplt-diary-item" ) || 
-                 Dom.getAncestorByClassName(target, "lplt-diary-item" ) ) && 
-                 !this.get( "itemClickCreateNew" ) ){
-             return;
+           if( ( Dom.hasClass( target, CLASS_DIARY_ITEM) || 
+                 Dom.getAncestorByClassName(target,  CLASS_DIARY_ITEM ) ) && 
+                 !this.get( "itemClickCreateNew" ) ){ 
+            return;
            }
   
            // only start a new one if previous ones have finished:
@@ -1982,7 +2029,7 @@ version: 1.0
             sel = this._selector;
   
            // column we're over:
-  				  dayEl = Dom.getAncestorByClassName( Ev.getTarget(ev), "lplt-diary-day" );
+  				  dayEl = Dom.getAncestorByClassName( Ev.getTarget(ev), CLASS_DIARY_DAY);
   				  if( dayEl === null || dayEl === undefined ){
   				    return;
   				  }
@@ -1993,23 +2040,23 @@ version: 1.0
              Ev.addListener( el , 'mouseup' , this._endSelector , this, true );
              
              x = Ev.getPageX( ev );// ev.clientX;
-    				 y = Ev.getPageY( ev ); //ev.clientY;
+    				 y = Ev.getPageY( ev ) - Dom.getDocumentScrollTop(); //ev.clientY;
     				 
     				 sel.startX = x;
     				 sel.startY = y;
     				 
     				 div = document.createElement( 'div' );
-    				 Dom.addClass( div, "lplt-diary-selector" );
-    				 Dom.setStyle( div, 'left' , x + 'px' );
-    				 Dom.setStyle( div, 'top' , y + 'px' );
-    				 Dom.setStyle( div, 'width' , '0px' );
-    				 Dom.setStyle( div , 'height' , '0px' );
+    				 Dom.addClass( div, CLASS_DIARY_SELECTOR);
+    				 Dom.setStyle( div, 'left', x + 'px' );
+    				 Dom.setStyle( div, 'top', y + 'px' );
+    				 Dom.setStyle( div, 'width', '0px' );
+    				 Dom.setStyle( div , 'height', '0px' );
 
     
    				 
     				 sel.selectorDiv = div;
     				 // append to the data el
-    				 Dom.getElementsByClassName("lplt-diary-datacontainer", 
+    				 Dom.getElementsByClassName( CLASS_DIARY_DATACONTAINER,
                                         "div", dayEl, 
                                         function(n) {n.appendChild(div);} );
 
@@ -2029,7 +2076,7 @@ version: 1.0
      _resizeSelectorDiv: function( ev ){
      
         var x = Ev.getPageX( ev );// ev.clientX;
-        var y = Ev.getPageY( ev );//ev.clientY;
+        var y = Ev.getPageY( ev ) - Dom.getDocumentScrollTop();//ev.clientY;
         var startX = this._selector.startX;
         var startY = this._selector.startY;
         
@@ -2053,6 +2100,8 @@ version: 1.0
            top    = startY;
            height = y - startY;
         }
+        
+        //height -= Dom.getDocumentScrollTop();
         
         
         var div = this._selector.selectorDiv;
@@ -2082,7 +2131,7 @@ version: 1.0
             // date object of new item
             itemStartDate = new Date( itemDay ), 
             // final day of new item
-            finalDayEl = Dom.getAncestorByClassName( Ev.getTarget(ev), "lplt-diary-day" ),
+            finalDayEl = Dom.getAncestorByClassName( Ev.getTarget(ev), CLASS_DIARY_DAY),
             // final day id and date
             finalDayNumber = ( finalDayEl ) ? finalDayEl.id.substring( 4 ) : 0,
             finalItemDay = this._colToDayMap[ finalDayNumber ],
@@ -2090,7 +2139,8 @@ version: 1.0
             itemEndDate = new Date( ( this.get("allowCreateMultiDayItems" ) ? finalItemDay : itemDay ) ),
             // work out times from mouse positions
             regionT = parseInt( Dom.getRegion( this._diaryData[ itemDay ]._backgroundEl ).top , 10 ),
-            t = Math.abs( parseInt( Dom.getStyle( this._selector.selectorDiv, "top" ) , 10 ) - regionT ),
+            t = Math.abs( parseInt( Dom.getStyle( this._selector.selectorDiv, "top" ) , 10 ) - 
+                          regionT + Dom.getDocumentScrollTop()),
             h = parseInt( Dom.getStyle( this._selector.selectorDiv, "height" ), 10 ),
             // the new DiaryItem
             newItem,
@@ -2125,8 +2175,8 @@ version: 1.0
         if( h > 0 ){
             
             // get start times
-            var tSecs = DiaryItem.prototype.calcStartFromPosition( t ),
-            hSecs = DiaryItem.prototype.calcEndFromPosition( h, t ),
+            var tSecs = DiaryItem.prototype.calcStartFromPosition( t ,this.get("pxPerHour")),
+            hSecs = DiaryItem.prototype.calcEndFromPosition(h, t, this.get("pxPerHour")),
             itemCfg = { DTSTART: 0 , DTEND: 0 , SUMMARY: '' },
             startHours = Math.floor( tSecs / 3600 ),
             startMins = Math.floor( (tSecs - ( startHours * 3600 ) ) / 60 ),
@@ -2214,7 +2264,8 @@ version: 1.0
                 resizeTop: true, 
                 resizeBottom: true ,
                 enableDragDrop: true,
-                useAnimation: this.get("useAnimation")
+                useAnimation: this.get("useAnimation"),
+                pxPerHour: this.get("pxPerHour")
         });
         
         
@@ -2806,7 +2857,7 @@ version: 1.0
        */
       render: function(){
 
-         this.addClass( "lplt-diary-container" );
+         this.addClass( CLASS_DIARY_CONTAINER);
          
          this._renderDays();
          
@@ -2854,11 +2905,11 @@ version: 1.0
   
         Dom.insertBefore( labelEl, parent.firstChild );
             
-        Dom.addClass( navContainer , "lplt-diary-nav" );
-        Dom.addClass( titleContainer , "lplt-diary-title" );
-        Dom.addClass( left , "lplt-diary-nav-left" );
-        Dom.addClass( right , "lplt-diary-nav-right" );
-        Dom.addClass( today , "lplt-diary-nav-today" );
+        Dom.addClass( navContainer , CLASS_DIARY_NAV );
+        Dom.addClass( titleContainer , CLASS_DIARY_TITLE);
+        Dom.addClass( left , CLASS_DIARY_NAV_LEFT);
+        Dom.addClass( right , CLASS_DIARY_NAV_RIGHT);
+        Dom.addClass( today , CLASS_DIARY_NAV_TODAY);
         
         left.innerHTML = "previous";
         right.innerHTML = "next";
@@ -2874,8 +2925,8 @@ version: 1.0
           calShowButton = document.createElement("div");
           
           calId = Dom.generateId();
-          Dom.addClass( calContainer, "lplt-diary-nav-cal" );
-          Dom.addClass( calShowButton, "lplt-diary-nav-calbutton" );
+          Dom.addClass( calContainer, CLASS_DIARY_NAV_CAL );
+          Dom.addClass( calShowButton, CLASS_DIARY_NAV_CALBUTTON);
           calShowButton.appendChild( document.createTextNode( "show calendar" ) );
           Ev.on( calShowButton , "click" , this.showNavCalendar, this, true );
           
@@ -2907,8 +2958,8 @@ version: 1.0
                     
             
         // label for the date
-        Dom.addClass(dayLabels, "lplt-diary-collabel-container");
-        Dom.addClass( labelEl, "lplt-diary-collabel" );
+        Dom.addClass(dayLabels, CLASS_DIARY_COLLABEL_CONTAINER);
+        Dom.addClass( labelEl, CLASS_DIARY_COLLABEL);
         Dom.setStyle( labelEl, "width" , (this._colWidth ) + "px");
         // go through the days adding labels:
         for (dayCounter = 0; dayCounter < 7; dayCounter += 1 ) {
@@ -2939,7 +2990,7 @@ version: 1.0
        */
       
       getNavContainer: function(){
-        var con = Dom.getElementsByClassName( "lplt-diary-nav", "div", this.get("element" ) );
+        var con = Dom.getElementsByClassName( CLASS_DIARY_NAV, "div", this.get("element" ) );
         
         if( con === null || con === undefined || con.length === 0 ){
           return false;
@@ -2978,20 +3029,16 @@ version: 1.0
           }
         
         }
-        
+ 
         // set the style of the containers to get the height:
-        dayHeight = ( this.get("display").endTime - this.get("display").startTime ) * PX_PER_HOUR; 
-        Dom.getElementsByClassName( "lplt-diaryday-container" , "div", this._calHolder, 
+        dayHeight = ( this.get("display").endTime - this.get("display").startTime ) * this.get("pxPerHour"); 
+        Dom.getElementsByClassName( CLASS_DIARYDAY_CONTAINER, "div", this._calHolder, 
                                     function(n){Dom.setStyle( n, "height" , dayHeight + "px" ); } );
+console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
 
-
-        scrollTop = this.get("display").startTime * PX_PER_HOUR;
+        scrollTop = this.get("display").startTime * this.get("pxPerHour");
         this._calHolder.scrollTop = scrollTop; 
-
-        //move the labels
-        /*Dom.getElementsByClassName( "lplt-diary-collabel" , "span", this.get("element"), 
-                                    function(n){Dom.setStyle( n, "top" , scrollTop + "px" ); } );
-          */                          
+                       
       },
       
       /**
@@ -3012,7 +3059,7 @@ version: 1.0
        * @protected
        */
       _renderTitle: function(){
-         var titleBox = Dom.getElementsByClassName( "lplt-diary-title", "div", this.getNavContainer() );
+         var titleBox = Dom.getElementsByClassName(CLASS_DIARY_TITLE, "div", this.getNavContainer() );
          titleBox[0].innerHTML = this.renderTitle();
       },
       
@@ -3069,10 +3116,10 @@ version: 1.0
         YAHOO.log( "Diary.addItemFilter" , "info" );        
        
         var i, 
-        items = YAHOO.util.Selector.query( ".lplt-diary-item" + selector, this.get("element") );
+        items = YAHOO.util.Selector.query( "." + CLASS_DIARY_ITEM + selector, this.get("element") );
 
         for( i = 0; i < items.length; i++ ){
-          Dom.addClass( items[i] , "lplt-diary-item-hidden" );
+          Dom.addClass( items[i], CLASS_DIARY_ITEM_HIDDEN);
         }
         this._filters[ selector ] = true;
         
@@ -3089,10 +3136,10 @@ version: 1.0
        */      
       removeItemFilter: function( selector ){
         var i, 
-        items = YAHOO.util.Selector.query( ".lplt-diary-item" + selector, this.get("element") );
+        items = YAHOO.util.Selector.query( "." + CLASS_DIARY_ITEM + selector, this.get("element") );
         
         for( i = 0; i < items.length; i++ ){
-          Dom.removeClass( items[i] , "lplt-diary-item-hidden" );
+          Dom.removeClass( items[i], CLASS_DIARY_ITEM_HIDDEN);
         }
         // remove this filter from memory.
         this._filters[ selector ] = undefined;
@@ -3124,12 +3171,13 @@ version: 1.0
        * @param HTMLElement
        * @protected
        */      
-      _applyFiltersToElement: function( el ){
-        var i,filters = this._filters;
+      _applyFiltersToElement : function(el) {
+        var i,
+            filters = this._filters;
         
-        for( i in filters ){
-          if( Lang.isString( i ) && filters[ i ] === true && YAHOO.util.Selector.test( el , i )) {
-            Dom.addClass( el , "lplt-diary-item-hidden" );
+        for (i in filters) {
+          if(Lang.isString(i) && filters[i] === true && YAHOO.util.Selector.test(el, i)) {
+            Dom.addClass(el, CLASS_DIARY_ITEM_HIDDEN);
           }
         }      
       },
@@ -3213,4 +3261,4 @@ version: 1.0
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "003"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "004"});
