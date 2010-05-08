@@ -1656,11 +1656,11 @@ version: 1.0
   
      /**
       * @property _colToDayMap
-      * @type Array
+      * @type Object
       * @description provieds a map from columns id's to dates (in seconds)
       * @protected 
       */
-     _colToDayMap:[],
+     _colToDayMap:{},
      
      /**
       * @property _selector
@@ -2035,7 +2035,7 @@ version: 1.0
           for( i = zeroTime ; i < zeroTime + 604800000 ; i += 86400000 ) {
         
             newDayEl = dayEl.cloneNode(true);
-            j = Dom.generateId( newDayEl , 'day-' ).substring( 4 );
+            j = Dom.generateId( newDayEl , 'day-' );
             
             day = new Date( i );
             this._diaryData[ i ] = new DiaryDay( newDayEl, { coldate: day , diary: this , width: this._colWidth }  );
@@ -2103,7 +2103,7 @@ version: 1.0
   				  if( dayEl === null || dayEl === undefined ){
   				    return;
   				  }
-  				  sel.dayNumber = dayEl.id.substring( 4 );
+  				  sel.dayNumber = dayEl.id;
   
      
              Ev.addListener( el , 'mousemove', this._resizeSelectorDiv , this, true );
@@ -2203,7 +2203,7 @@ version: 1.0
             // final day of new item
             finalDayEl = Dom.getAncestorByClassName( Ev.getTarget(ev), CLASS_DIARY_DAY),
             // final day id and date
-            finalDayNumber = ( finalDayEl ) ? finalDayEl.id.substring( 4 ) : 0,
+            finalDayNumber = ( finalDayEl ) ? finalDayEl.id : 0,
             finalItemDay = this._colToDayMap[ finalDayNumber ],
             // end date is either same day or where the mouse-upped
             itemEndDate = new Date( ( this.get("allowCreateMultiDayItems" ) ? finalItemDay : itemDay ) ),
@@ -2645,6 +2645,7 @@ version: 1.0
           this.initData( this.get("element"), {}, this._ds );
           
           this._renderTitle();
+          this._renderColumnLabels();
           this._applyFilters();
       },
 
@@ -2979,7 +2980,8 @@ version: 1.0
             dayLabels = document.createElement("div"),
             labelEl = document.createElement("span"),
             thisLabel,
-            dayCounter = 0;
+            dayCounter = 0,
+            labelsAdded = 0;
 
         
         
@@ -3042,24 +3044,48 @@ version: 1.0
         Dom.addClass(dayLabels, CLASS_DIARY_COLLABEL_CONTAINER);
         Dom.addClass( labelEl, CLASS_DIARY_COLLABEL);
         Dom.setStyle( labelEl, "width" , (this._colWidth ) + "px");
+        
         // go through the days adding labels:
         for (dayCounter = 0; dayCounter < 7; dayCounter += 1 ) {
-        
-          thisLabel = labelEl.cloneNode(false);
-          thisLabel.appendChild( 
-              document.createTextNode( 
-                  this.renderDateLabel( 
-                      new Date(this._colToDayMap[ dayCounter ]))));
-          dayLabels.appendChild(thisLabel);
+            thisLabel = labelEl.cloneNode(false);
+            dayLabels.appendChild(thisLabel);
         }
+        
+        
         navContainer.appendChild(dayLabels);
         
+        this._renderColumnLabels();
       
         Ev.on( left, "click" , this._doPrevious , this , true );
         Ev.on( right , "click" , this._doNext , this , true );
         Ev.on( today, "click" , this._doFirstDayOfTodaysWeek, this, true );
         
         this._renderTitle();
+      
+      },
+      
+      
+      /**
+       * @method _renderColumnLabels
+       * @protected
+       * @description Adds date labels to column headers
+       */
+      _renderColumnLabels : function() {
+      
+        var startDate = this.get("startDate");
+        
+        Dom.getElementsByClassName(
+            CLASS_DIARY_COLLABEL, 
+            "span", 
+            this.getNavContainer(),
+            function(n) {
+              n.innerHTML = this.renderDateLabel( startDate );
+              DM.add(startDate, 1, DM.DAY);
+            },
+            this, 
+            true
+        );
+                                   
       
       },
       
@@ -3321,7 +3347,7 @@ version: 1.0
         
         this._itemHash = [];
         this._diaryData = [];
-        this._colToDayMap = [];
+        this._colToDayMap = {};
         /**
          * @event destroyData
          * @description After all the data has been destroyed.
@@ -3405,4 +3431,4 @@ version: 1.0
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "005"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "006"});
