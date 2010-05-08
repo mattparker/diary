@@ -3080,7 +3080,7 @@ version: 1.0
             this.getNavContainer(),
             function(n) {
               n.innerHTML = this.renderDateLabel( startDate );
-              DM.add(startDate, 1, DM.DAY);
+              startDate = DM.add(startDate, DM.DAY, 1);
             },
             this, 
             true
