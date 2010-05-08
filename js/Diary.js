@@ -15,10 +15,11 @@ version: 1.0
  * @optional anim, container
  * @title Diary widget
  *
- * Diary uses a YAHOO.util.Datasource with, minimally, start and end dates.
+ * @description
+ * <p>Diary uses a YAHOO.util.Datasource with, minimally, start and end dates.
  * Items in the diary can be rescheduled using drag and drop, or times changed using resize.
  * New items can be added by click-and-dragging on the diary to provide the 
- * start and end times.
+ * start and end times.</p>
  *
  */
 (function () {
@@ -56,11 +57,12 @@ version: 1.0
         
   /**
    *
-   * DiaryItem class for individual items in the Diary.
+   * <p>DiaryItem class for individual items in the Diary.</p>
    *
-   * Data and display for particular diary item.
+   * <p>Data and display for particular diary item.
    * Extends resize (and includes drag drop).  This class shouldn't be used
    * directly; items to be added should be added by the Diary.addItem() method.
+   * </p>
    *
    * @class DiaryItem
    * @extends YAHOO.util.Resize
@@ -188,7 +190,7 @@ version: 1.0
       
       /**
        * References to other elements in multi-day events
-       * @property _cacheDates
+       * @property _multiDayChildren
        * @private
        * @default: []
        * @type Array
@@ -200,7 +202,7 @@ version: 1.0
        * Implementation of Element's abstract method. Sets up config values.
        *
        * @method initAttributes
-       * @param oConfigs {Object} Object literal definition of configuration values.
+       * @param oCfg {Object} Object literal definition of configuration values.
        * @private
        */
       initAttributes : function(oCfg){
@@ -263,7 +265,7 @@ version: 1.0
          });
          
          /**
-          * @attribute backClass
+          * @attribute detailClass
           * @description Adds css class(es) to the text div container Item container
           * @type String class name to add
           * @default ""
@@ -393,7 +395,7 @@ version: 1.0
       
       /**
        * @description Initializer, sets up the details Element
-       *
+       * @protected
        * @method initContent
        */
       initContent: function() {
@@ -413,7 +415,7 @@ version: 1.0
       /**
        *
        * @description Initialize listeners for this item.
-       *
+       * @protected
        * @method initListeners
        */
       initListeners: function() {
@@ -477,9 +479,9 @@ version: 1.0
             this.anim === false && 
             this.get("useAnimation") === true) {
            
-              this.anim = new YAHOO.util.Anim(this.get("element") ,{} ,0.5 );
+              this.anim = new YAHOO.util.Anim(this.get("element"), {}, 0.5);
               
-         }
+        }
       },
       
       
@@ -771,7 +773,7 @@ version: 1.0
       /**
        * @method setEndTimeSecs
        * @description  Sets the end time (but not date) from seconds
-       * @param {Int}
+       * @param Int
        */          
       setEndTimeSecs: function( secs ) {
          var h = Math.floor( secs / 3600 ),
@@ -970,7 +972,7 @@ version: 1.0
       /**
        * @method addMultiDayChild
        * @description Adds a linked child diary item to the stack:
-       * @param DiaryItem
+       * @param oDiaryItem {DiaryItem}
        */
       addMultiDayChild: function( oDiaryItem ){
          this._multiDayChildren.push( oDiaryItem ); 
@@ -990,6 +992,52 @@ version: 1.0
           return this.get("multiDayParent");
         }
         return this;
+      },
+      
+      
+      /**
+       * @method destroy
+       * @description Destroys the DiaryItem
+       */
+      destroy : function() {
+      
+        var i = 0, 
+            numChildren = this._multiDayChildren.length,
+            el = this.get("element"),
+            parent = el.parentNode;
+      
+        if (this.dragdrop) {
+          this.dragdrop.destroy();
+        }
+
+
+        this._line = null;
+        this._detailsEl = null;
+        if (this.anim !== false) {
+          this.anim.destroy();
+          this.anim = false;
+        }
+        this._cacheDates = null;
+  
+        if (numChildren> 0) {
+          for (i = 0; i < numChildren; i++) {
+            this._multiDayChildren.destroy();
+          }
+        }
+        this._multiDayChildren = null;
+        
+        DiaryItem.superclass.destroy.call(this);
+        
+        if (parent) {
+          parent.removeChild(el);
+        }
+        
+        /**
+         * @event destroy
+         * @description Fired after destruction process
+         */
+        this.fireEvent("destroy");
+      
       }
   
   });  
@@ -1071,7 +1119,7 @@ version: 1.0
     /**
      * Adds a DiaryItem to the block.
      * @method addItem
-     * @param DiaryItem
+     * @param item {DiaryItem}
      */
     addItem: function(item) {
     
@@ -1155,7 +1203,7 @@ version: 1.0
     /**
      * @method contains
      * @description  Does item overlap with this block?
-     * @param DiaryItem
+     * @param item {DiaryItem}
      * @return {Boolean}
      */
     contains: function(item) {
@@ -1389,7 +1437,7 @@ version: 1.0
      /**
       * @method removeItemFromBlock
       * @description Removes an item from its block
-      * @param DiaryItem
+      * @param item {DiaryItem}
       * @return {Boolean}  Whether it was successfully removed
       */
      removeItemFromBlock: function( item ){
@@ -1572,18 +1620,23 @@ version: 1.0
    *
    * The main diary; 
    *
-   * This is the main object:
-   *  - gets the data
-   *  - does the main background display
-   *  - sets up the DiaryDay objects and calls their render methods
-   *  - holds delegated event listeners
+   * <p>This is the main object.  It:
+   *  <ol style="margin-left:30px;">
+   *   <li>gets the data</li>
+   *   <li>does the main background display</li>
+   *   <li>sets up the DiaryDay objects and calls their render methods</li>
+   *   <li>holds delegated event listeners for the DiaryItems</li>
+   * </ol>
    *
    * @namespace YAHOO.widget
    * @class Diary
    * @extends YAHOO.util.Element
    * @constructor
    * @param el {HTMLElement} Container element for the Diary
-   * @param oDS {YAHOO.util.DataSource} DataSource instance.
+   * @param oDS {YAHOO.util.DataSource} DataSource instance.  Each 'row' in the
+   *  data will need a start date/time and end date/time, both as js Date objects.
+   *  Use the fieldMap config attribute to map data fields to those expected
+   *  by Diary - DTSTART and DTEND.
    * @param oCfg {Object} Object literal of config values.
    *
    */
@@ -1661,7 +1714,7 @@ version: 1.0
 
 
      /**
-      * @property _diaryData
+      * @property _itemHash
       * @type Array
       * @description Array holding DiaryItem element ids and DiaryItem refs
       * @protected
@@ -1704,7 +1757,9 @@ version: 1.0
             */
            this.setAttributeConfig( 'startDate' , {
              method: function(v){
-               this.set("endDate", DM.add( v, DM.DAY, 7 ));
+               if (!this.get("endDate")) {
+                  this.set("endDate", DM.add( v, DM.DAY, 7 ));
+               }
              }
            });
     			 
@@ -1729,7 +1784,7 @@ version: 1.0
     
            /**
             * @attribute scaleColumns
-            * @description Whether to scale columns to width
+            * @description Whether to scale columns to width.  writeOnce
             * @type Boolean
             * @default true
             */			 
@@ -1743,7 +1798,8 @@ version: 1.0
               } else {
                 this._colWidth = 200;
               }
-            }
+            },
+            writeOnce: true
              
             } 
     			 );
@@ -1758,12 +1814,13 @@ version: 1.0
             * and start and end times (in 24-hour clock hours) displayed
             * in the main window (the rest are above and below the scroll.
             * <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>.
-            * The only format available currently is "week".
+            * The only format available currently is "week".  Write once.
             * @type Object
             * @default <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>
             */	
            this.setAttributeConfig( 'display' , {
-             value:  { format: "week" , startTime: 8, endTime: 20 }
+             value:  { format: "week" , startTime: 8, endTime: 20 },
+             writeOnce: true
             } 
     			 );
     			 			 
@@ -1773,12 +1830,14 @@ version: 1.0
            /**
             * @attribute calenderNav
             * @description Whether to use a YAHOO.widget.Calendar in the navigation.
+            *   Write once.
             * @type Boolean
             * @default true
             */			 
            this.setAttributeConfig( 'calenderNav', {
              validator: Lang.isBoolean,
-             value: true
+             value: true,
+             writeOnce: true
            });
            
            
@@ -1791,7 +1850,7 @@ version: 1.0
             * backClass is the css class string applied to the background container of the
             * DiaryItem; detailClass is the css class string applied to the element
             * holding the text of the item.  These can be used by addItemFilter
-            * to show or hide items by category.
+            * to show or hide items by category.  Write once
             *
             * @type {Object}
             * @default <pre> 
@@ -1822,7 +1881,8 @@ version: 1.0
                        backClass: "backClass",
                        detailClass: "detailClass" }, oMap );
               
-              }
+              },
+              writeOnce: true
             
           
           } );
@@ -1831,13 +1891,14 @@ version: 1.0
            /**
             * @attribute titleString
             * @description String to use as template for title.  You can use 
-            * strftime type identifiers.
+            * strftime type identifiers.  Write once.
             * @type String
             * @default "Diary w/c %A, %e %B %Y"
             */	
            this.setAttributeConfig( "titleString" , {
              validator: Lang.isString,
-             value: "Diary w/c %A, %e %B %Y"
+             value: "Diary w/c %A, %e %B %Y",
+             writeOnce: true
            });
            
 
@@ -1870,38 +1931,43 @@ version: 1.0
    
           /**
            * @attribute tooltip
-           * @description  Whether to use tooltip for mouseover events to show details
+           * @description  Whether to use tooltip for mouseover events to show details.
+           *   Write once.
            * @default: false
            * @type Boolean
            */ 
            this.setAttributeConfig( "tooltip", {
              validator: Lang.isBoolean,
-             value: false
+             value: false,
+             writeOnce: true
            });        
                   
           
    
           /**
            * @attribute animate
-           * @description  Whether to use animation when moving items around
+           * @description  Whether to use animation when moving items around.
+           *    Write once.
            * @default: false
            * @type Boolean
            */ 
            this.setAttributeConfig( "useAnimation", {
              validator: Lang.isBoolean,
-             value: false
+             value: false,
+             writeOnce: true
            }); 
            
    
           /**
            * @attribute pxPerHour
-           * @description  Number of pixels per hour
+           * @description  Number of pixels per hour.   Write once.
            * @default: 20
            * @type Number
            */ 
            this.setAttributeConfig( "pxPerHour", {
              validator: Lang.isNumber,
-             value: 20
+             value: 20,
+             writeOnce: true
            });            
                         
          			 
@@ -1923,13 +1989,16 @@ version: 1.0
           this.on( "parseData" , this.render, this );
           
           // click and drag new items
-          Ev.delegate( this.get("element") , "mousedown", this._startNewItem , "div." + CLASS_DIARY , this , true );
+          Ev.delegate(this.get("element"), "mousedown", this._startNewItem, "div." + CLASS_DIARY, this, true);
           
           // click on existing diary items
-          Ev.delegate( this.get("element"), "click" , this.handleItemClick , "div." + CLASS_DIARY_ITEM, this, true);
+          Ev.delegate(this.get("element"), "click", this.handleItemClick, "div." + CLASS_DIARY_ITEM, this, true);
           
           // mouseover
-          Ev.delegate( this.get("element"), "mouseenter", this.handleItemMouseEnter, "div." + CLASS_DIARY_ITEM, this, true);
+          Ev.delegate(this.get("element"), "mouseenter", this.handleItemMouseEnter, "div." + CLASS_DIARY_ITEM, this, true);
+          
+          // change display date
+          this.on("startDateChange", this._reDo, this);
        
        },
 
@@ -1980,8 +2049,9 @@ version: 1.0
        
        
        /**
-        * @method setupDays
-        * @description Get the DiaryDay object based on date ( in seconds)
+        * @method getDiaryDay
+        * @description Get the DiaryDay object based on date (in seconds)
+        * @param secsDate {Int}  start time in seconds.
         * @return {Object} DiaryDay 
         */
        getDiaryDay: function( secsDate ) {
@@ -1995,7 +2065,7 @@ version: 1.0
         * @description Click and drag to add new DiaryItem
         * @method _startNewItem
         * @protected
-        * @param {Event}
+        * @param ev {Event}
         */
        _startNewItem: function( ev ){
           
@@ -2071,7 +2141,7 @@ version: 1.0
       * @description Resizes the selector when creating a new item
       * @method _resizeSelectorDiv
       * @protected
-      * @param {Event}
+      * @param ev {Event}
       */    
      _resizeSelectorDiv: function( ev ){
      
@@ -2119,7 +2189,7 @@ version: 1.0
       * @description Called at the end of selector - creating a new item by drag-drop
       * @method _endSelector
       * @protected
-      * @param event
+      * @param ev {Event}
       */
      _endSelector: function(ev){
 
@@ -2216,8 +2286,8 @@ version: 1.0
      /**
       * @description Add an item to the Diary
       * @method addItem
-      * @param Object      Data for the new item, minimally: {DTSTART: oDate, DTEND: oDate }
-      * @param Boolean     Whether to redraw once it's added
+      * @param oCfg   {Object}      Data for the new item, minimally- DTSTART: oDate, DTEND: oDate 
+      * @param redraw {Boolean}     Whether to redraw once it's added
       * @return {DiaryItem}  The new item created
       */
      addItem: function( oCfg , render ){
@@ -2399,7 +2469,7 @@ version: 1.0
      /**
       * @method getItem
       * @description Returns the DiaryItem with id elId
-      * @param {String}
+      * @param elId {String}
       * @return {DiaryItem}
       *
       */
@@ -2423,6 +2493,10 @@ version: 1.0
       /**
        * @description When a DiaryItem is clicked
        * @method handleItemClick
+       * @param ev {Event}
+       * @param el {HTMLElement}
+       * @param el {HTMLElement}
+       * @protected
        */
      handleItemClick: function( ev , el, container ){
          YAHOO.log( 'Diary.handleItemClick', "info");
@@ -2445,12 +2519,19 @@ version: 1.0
      
      /**
       * @method handleItemMouseEnter
-      * @description When a DiaryItem is mouseenter-ed
+      * @description When a DiaryItem is mouseenter-ed.  Default behaviour
+      * is to show a tooltip (if this was enabled in the config).  The
+      * itemMouseEnter event is fired first; return false to this to stop 
+      * the default behaviour.
+      * @param ev {Event}
+      * @param el {HTMLElement}
+      * @param el {HTMLElement}
+      * @protected
       */
-     handleItemMouseEnter: function( ev, el, container ){
+     handleItemMouseEnter : function( ev, el, container ){
 
          /**
-          * @event itemClick
+          * @event itemMouseEnter
           * @description When a mouse enters a DiaryItem.  Return false
           * to cancel default behaviour (tooltip at the moment).
           * @param oArgs.item  The DiaryItem mouseentered
@@ -2499,12 +2580,11 @@ version: 1.0
       * @protected
       * 
       */
-      _doPrevious: function() {
+      _doPrevious : function() {
 
           var newStartDate = DM.subtract( this.get("startDate"), DM.WEEK , 1 );
           this.set( "startDate" ,newStartDate );
 
-          this._reDo();
       },
 
      /**
@@ -2512,25 +2592,23 @@ version: 1.0
       * @description Go to the next day/week
       * @protected
       */      
-      _doNext: function() {
+      _doNext : function() {
 
           var newStartDate = DM.add( this.get("startDate"), DM.WEEK , 1 );
           this.set( "startDate" ,newStartDate );
-          
-          this._reDo();
       },
       
      /**
       * @method _doCalNav
       * @description Go to any start date (set by calendar)
-      * @param Event
-      * @param Array Selected date, as returned by YAHOO.util.Calendar (ie array [[[ yyyy, mm, dd]]])
+      * @param ev {Event}
+      * @param selDate {Array} Selected date, as returned by YAHOO.util.Calendar
+      *   (ie array [[[ yyyy, mm, dd]]])
       * @protected
       */      
-      _doCalNav: function(ev , selDate ) {
+      _doCalNav : function(ev, selDate) {
          this._navCalendar.hide();
          this.set( "startDate" ,new Date( selDate[0][0][0], selDate[0][0][1] - 1 , selDate[0][0][2] ) );
-         this._reDo();
       },
       
       /**
@@ -2550,7 +2628,6 @@ version: 1.0
            return;
          }
          this.set( "startDate", startOfWeek);
-         this._reDo();
       },
       
       /**
@@ -2585,6 +2662,9 @@ version: 1.0
         /**
          * @method initData
          * @description Store a reference to the data and get it
+         * @param el {HTMLElement}
+         * @param oCfg {Object}
+         * @param oDS {YAHOO.util.DataSource}
          * @protected
          */
        initData: function( el, oCfg, oDS ){
@@ -2602,7 +2682,7 @@ version: 1.0
   	  /**
 	     * @method _getData
        * @description Gets data from the data source
-	     * @param YAHOO.util.DataSource
+	     * @param oDS {YAHOO.util.DataSource}
 	     * @protected
 	     */
 	    _getData: function( oDS ){
@@ -2617,8 +2697,8 @@ version: 1.0
 	    
 	    /**
 	     * Parses the data when it comes
-	     * @param {Object}		Request object
-	     * @param {Object}		Data returned by DataSource
+	     * @param req  {Object}		Request object
+	     * @param data {Object}		Data returned by DataSource
 	     * @protected
 	     */
 	    _parseData: function ( req, data ){
@@ -2711,8 +2791,8 @@ version: 1.0
 	    /**
 	     * @description Looks for the first day between startDate and endDate that has a column
 	     * in the diary; multi-day items may not start in range but may go into it.
-	     * @param {Date}
-	     * @param {Date}
+	     * @param  startDate {Date}
+	     * @param  endDate {Date}
 	     * @return {Date|false}  Date or first if it doesn't fall in range.
 	     * @private
 	     */
@@ -2737,7 +2817,7 @@ version: 1.0
 	    /**
 	     * @method _getDay
 	     * @description Returns a Date object with times set to 0
-	     * @param {Date}
+	     * @param  date {Date}
 	     * @return {Date}
 	     * @private
 	     */
@@ -2751,7 +2831,7 @@ version: 1.0
 	    /**
 	     * @method _getEndOfDay
 	     * @description Returns a Date object with times set to 23:59:59
-	     * @param {Date}
+	     * @param date {Date}
 	     * @return {Date}
 	     * @private
 	     */	    
@@ -2765,9 +2845,9 @@ version: 1.0
 	    /**
 	     * @method _sameDay
 	     * @description Are date1 and date2 the same day?
-	     * @param Date
-	     * @param Date
-	     * @return Boolean
+	     * @param date1 {Date}
+	     * @param date2 {Date}
+	     * @return {Boolean}
 	     * @private
 	     */
 	    _sameDay: function ( date1, date2 ){
@@ -2779,7 +2859,7 @@ version: 1.0
 	     * @method _dataFailed
 	     * @description Called if sendRequest fails on the data
 	     * @method _dataFailed
-	     * @param {object}   Request object that failed
+	     * @param req {object}   Request object that failed
 	     * @private
 	     */
 	    _dataFailed: function( req ){
@@ -2800,9 +2880,9 @@ version: 1.0
 	    /**
 	     * @method _itemSorter
 	     * @description Sorting function for arranging items in ascending date/time order
-	     * @param DiaryItem
-	     * @param DiaryItem
-	     * @return boolean        True if oItem2 is before oItem1
+	     * @param oItem1 {DiaryItem}
+	     * @param oItem2 {DiaryItem}
+	     * @return {Boolean}        True if oItem2 is before oItem1
 	     * @private
 	     */
 	    _itemSorter: function( oItem1 , oItem2 ){ 
@@ -2810,11 +2890,11 @@ version: 1.0
 	    },
 	    
 	    /**
-	     * @method _itemSorter
+	     * @method _rawItemSorter
 	     * @description Sorting function for arranging items in ascending date/time order, using raw data objects
-	     * @param Object    Property DTSTART used for sorting
-	     * @param Object
-	     * @return boolean        True if oItem2 is before oItem1
+	     * @param oItem1 {Date}    Property DTSTART used for sorting
+	     * @param oItem2 {Date}    Property DTSTART of comparison item for sort
+	     * @return {Boolean}       True if oItem2 is before oItem1
 	     * @private
 	     */	    
 	    _rawItemSorter: function(oItem1, oItem2) { 
@@ -2852,7 +2932,8 @@ version: 1.0
 
       /**
        * @method render
-       * @description Renders the Diary
+       * @description Renders the Diary.  Called after data is parsed - shouldn't
+       * need to be called otherwise.
        * 
        */
       render: function(){
@@ -2883,7 +2964,7 @@ version: 1.0
        * @protected
        * 
        */      
-      _renderNav: function(){
+      _renderNav : function() {
       
         if( this.getNavContainer() !== false ){
           return;
@@ -2989,7 +3070,7 @@ version: 1.0
        * @return {HTMLElement}
        */
       
-      getNavContainer: function(){
+      getNavContainer : function() {
         var con = Dom.getElementsByClassName( CLASS_DIARY_NAV, "div", this.get("element" ) );
         
         if( con === null || con === undefined || con.length === 0 ){
@@ -3002,12 +3083,16 @@ version: 1.0
       /**
        * @method showNavCalendar
        * @description Shows the calendar navigator
+       * @param ev {Event}  Event object; used to position.  Pass an object
+       * with ev.clientX and ev.clientY to position the Calendar manually.
        */
-      showNavCalendar: function(ev){
+      showNavCalendar : function(ev){
         var cal = this._navCalendar;
         
         cal.show();
-        Dom.setXY( cal.oDomContainer, [ ev.clientX - 200, ev.clientY ] );
+        if (ev !== null && Lang.isNumber(ev.clientX) && Lang.isNumber(ev.clientY)) {
+          Dom.setXY( cal.oDomContainer, [ ev.clientX - 200, ev.clientY ] );
+        }
       },
       
       /**
@@ -3034,7 +3119,6 @@ version: 1.0
         dayHeight = ( this.get("display").endTime - this.get("display").startTime ) * this.get("pxPerHour"); 
         Dom.getElementsByClassName( CLASS_DIARYDAY_CONTAINER, "div", this._calHolder, 
                                     function(n){Dom.setStyle( n, "height" , dayHeight + "px" ); } );
-console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
 
         scrollTop = this.get("display").startTime * this.get("pxPerHour");
         this._calHolder.scrollTop = scrollTop; 
@@ -3043,8 +3127,9 @@ console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
       
       /**
        * @method renderDateLabel
-       * @description  Overwritable to render date labels
-       * @param {Date}
+       * @description  Overwritable to render date labels at the top of each column.
+       * Default is oDate.toString().substring(0, 10);
+       * @param oDate {Date} Date object
        * @return {String}
        */
       renderDateLabel: function( oDate ) {
@@ -3053,7 +3138,7 @@ console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
       
       
       /**
-       * @method renderDateLabel
+       * @method _renderTitle
        * @description  Puts the title text in the title container box
        * Doesn't actually produce the title string though.
        * @protected
@@ -3065,10 +3150,10 @@ console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
       
       
       /**
-       * @method renderDateLabel
+       * @method renderTitle
        * @description  Overwriteable to render title string
        * Can use strftime identifiers in the format string
-       * @param {String}
+       * @param titleString {String}  Title string with strftime placeholders.
        * @return {String}
        */
       renderTitle: function( titleString ){
@@ -3108,8 +3193,8 @@ console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
        * @description Filters DiaryItems based on css selector.
        * selector passed will be appended directly to ".lplt-diary-item"
        * If nothing is passed, it will filter for all (ie hide everything)
-       * @param {String}
-       * @param {Int} Number of items hidden
+       * @param selector {String}
+       * @return {Int}  Number of items hidden
        */
       addItemFilter: function( selector ){
       
@@ -3131,7 +3216,7 @@ console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
        * @description Removes filter on DiaryItems based on css selector.
        * selector passed will be appended directly to ".lplt-diary-item"
        * If nothing is passed, it will filter for all (ie show everything)
-       * @param {String}
+       * @param selector {String}
        * @return {Int} Number of items shown
        */      
       removeItemFilter: function( selector ){
@@ -3185,7 +3270,36 @@ console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
 
 
 
-
+      /**
+       * @method destroy
+       * @description destroys the Diary
+       */
+      destroy : function() {
+      
+        this._destroyData();
+        this._destroyDays();
+        this._removeListeners();
+        
+        // other widgets:
+        if (this._tooltip) {
+          this._tooltip.destroy();
+          this._tooltip = null;
+        }
+        if (this._navCalendar) {
+          this._navCalendar.destroy();
+          this._navCalendar = null;
+        }
+        
+        this.removeClass( CLASS_DIARY_CONTAINER );
+        this.get("element").innerHTML = "";
+        
+        /**
+         * @event destroy
+         * @description When the Diary has finished destorying
+         */
+        this.fireEvent("destroy");
+      
+      },
 
 
       /**
@@ -3225,7 +3339,37 @@ console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
       _destroyDays: function(){
         //Ev.purgeListeners( this._calHolder );
         this.get("element").removeChild( this._calHolder );
+      },
+      
+      
+      /**
+       * @method _removeListeners
+       * @description Removes event listeners
+       * @protected
+       */
+      _removeListeners : function() {
+      
+        // listeners on the main element (delegated)
+        Ev.purgeElement(this.get("element"), false);
+        // navigation event listeners (recurse: not too deep and need to pick up
+        // all the nav buttons
+        Ev.purgeElement(this.getNavContainer(), true);
+        
+      
+      },
+      
+      
+      /**
+      * Returns a string representation of the object.
+      * @method toString
+      * @return {String} The string representation of the Diary
+      * @private
+      */      
+      toString : function() {
+        return "Diary " + this.get("element").id;
       }
+      
+      
 
 
 
@@ -3261,4 +3405,4 @@ console.log( "dayHeight" , dayHeight,        this.get("pxPerHour"));
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "004"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "005"});
