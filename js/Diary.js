@@ -98,6 +98,7 @@ version: 1.0
      
      
         this._multiDayChildren = [];
+        this._categories = [];
      
         YAHOO.log("constructor for new DiaryItem ", "info");     
      
@@ -199,6 +200,17 @@ version: 1.0
       
       
       /**
+       * Array of categories, set by CATEGORIES method which parses the string
+       * given in the config object.
+       * @property _categories
+       * @private
+       * @default: []
+       * @type Array
+       */
+      _categories: [],
+      
+      
+      /**
        * Implementation of Element's abstract method. Sets up config values.
        *
        * @method initAttributes
@@ -211,6 +223,104 @@ version: 1.0
          DiaryItem.superclass.initAttributes.call(this, oCfg);
          
 
+         /**
+          * @attribute UID
+          * @description The unique id of the item.  Write once.
+          * @default: ''
+          * @type String
+          */
+         this.setAttributeConfig('UID', {
+         
+           value: '',
+           validator: Lang.isString,
+           writeOnce: true
+         
+         });
+         
+         /**
+          * @attribute LOCATION
+          * @descrition The location of the Item
+          * @default: ''
+          * @type String
+          */
+         this.setAttributeConfig('LOCATION', {
+           value: '',
+           validator: Lang.isString
+         });
+         
+         
+         
+         /**
+          * @attribute useCssCategories
+          * @description If true, any CATEGORIES will be added as css classes
+          * to the container element for the item, allowing styling and filtering.
+          * Anything passed to backClass will also be added.  Spaces in categories
+          * will be changed to hyphens.
+          * @type Boolean
+          * @default false
+          */
+         this.setAttributeConfig('useCssCategories', {
+           validator: Lang.isBoolean,
+           value: false
+         });
+         
+         
+         /**
+          * @attribute CATEGORIES
+          * @description Comma separated string of categories for this Item.  If
+          * useCssCategories is true these will be added as css classes (with
+          * hyphens replacing spaces.
+          * @type String
+          * @default ''
+          */
+         this.setAttributeConfig('CATEGORIES', {
+           validator: Lang.isString,
+           method: function(v) {
+           
+             var spaceToHyphen = function(str) {
+               return Lang.trim(str).replace(/ /g, "-");
+             },
+                 cats = '',
+                 i,
+                 openQuote = false,
+                 thisCategory = '';
+           
+             // if there are quotes in the string, we'll need to parse it carefully
+             if (v.indexOf( '"' ) !== -1) {
+
+                 for (i = 0; i < v.length; i++ ) {
+                   
+                   switch (v[i]) {
+                     case '"':
+                       openQuote = !openQuote;
+                       // end of a string
+                       if (!openQuote) {
+                         this._categories.push( spaceToHyphen(thisCategory) );
+                         thisCategory = '';
+                       } 
+                     break;
+                    
+                     default:
+                       thisCategory += v[i];
+                     break;
+                   }
+                   
+                 }
+               
+             } else if (v.indexOf(',')) {
+               // multiple items: split them up and tidy them up
+               cats = v.split(',');
+               for (i = 0; i < cats.length; i++) {
+                 cats[i] = spaceToHyphen(cats[i]);
+               }
+               this._categories = cats;
+             } else {
+               // just one category
+               this._categories = [spaceToHyphen(v)];
+             }
+           }
+         });
+         
 
          /**
           * @attribute SUMMARY
@@ -400,11 +510,20 @@ version: 1.0
        */
       initContent: function() {
 
-        var detailsEl = document.createElement("div");
+        var i = 0,
+            detailsEl = document.createElement("div");
+            
+        // add some classes
         Dom.addClass(detailsEl, CLASS_DIARY_ITEM_DETAILS );
         Dom.addClass(detailsEl, this.get("detailClass"));
         this.get("element").appendChild(detailsEl);
+        
         Dom.addClass(this.get("element"), this.get("backClass"));
+        
+        // add categories as classes if needed:
+        if (this.get("useCssCategories") && this._categories.length > 0) {
+          Dom.addClass( this.get("element"), this._categories.join(" ") );
+        }
 
         this._detailsEl = detailsEl;
       
@@ -1854,32 +1973,44 @@ version: 1.0
             *
             * @type {Object}
             * @default <pre> 
-             &nbsp;        { DTSTART: "DTSTART",
+             &nbsp;        { UID: "UID",
+             &nbsp;          DTSTART: "DTSTART",
              &nbsp;          DTEND:   "DTEND",
              &nbsp;          SUMMARY: "SUMMARY",
              &nbsp;          DESCRIPTION: "DESCRIPTION",
+             &nbsp;          CATEGORIES: "CATEGORIES",
+             &nbsp;          LOCATION: "LOCATION",
              &nbsp;          URL: "URL",
              &nbsp;          backClass: "backClass",
              &nbsp;          detailClass: "detailClass" }</pre>
             */	
             this.setAttributeConfig( 'fieldMap' , {
             
-              value: { DTSTART: "DTSTART",
+              value: { UID: "UID",
+                       DTSTART: "DTSTART",
                        DTEND:   "DTEND",
                        SUMMARY: "SUMMARY",
                        DESCRIPTION: "DESCRIPTION",
                        URL: "URL",
+                       CATEGORIES: "CATEGORIES",
+                       LOCATION: "LOCATION",
                        backClass: "backClass",
                        detailClass: "detailClass" },
               setter: function( oMap ){
               
-                return Lang.merge( { DTSTART: "DTSTART",
+                return Lang.merge( { 
+                       UID: "UID",
+                       DTSTART: "DTSTART",
                        DTEND:   "DTEND",
                        SUMMARY: "SUMMARY",
                        DESCRIPTION: "DESCRIPTION",
                        URL: "URL",
+                       CATEGORIES: "CATEGORIES",
+                       LOCATION: "LOCATION",
                        backClass: "backClass",
-                       detailClass: "detailClass" }, oMap );
+                       detailClass: "detailClass"
+                    }, oMap
+                );
               
               },
               writeOnce: true
@@ -1968,7 +2099,25 @@ version: 1.0
              validator: Lang.isNumber,
              value: 20,
              writeOnce: true
-           });            
+           });
+
+
+
+         
+           /**
+            * @attribute useCssCategories
+            * @description If true, any CATEGORIES will be added as css classes
+            * to the container element for the DiaryItem, allowing styling and filtering.
+            * Anything passed to backClass will also be added.  Spaces in categories
+            * will be changed to hyphens.
+            * @type Boolean
+            * @default false
+            */
+           this.setAttributeConfig('useCssCategories', {
+             validator: Lang.isBoolean,
+             value: false
+           });
+
                         
          			 
 			},
@@ -2335,7 +2484,8 @@ version: 1.0
                 resizeBottom: true ,
                 enableDragDrop: true,
                 useAnimation: this.get("useAnimation"),
-                pxPerHour: this.get("pxPerHour")
+                pxPerHour: this.get("pxPerHour"),
+                useCssCategories: this.get("useCssCategories")
         });
         
         
@@ -2636,6 +2786,15 @@ version: 1.0
        * @protected
        */
       _reDo: function(){
+      
+          /**
+           * @event beforeReDo
+           * @description Fired before the Diary is redrawn, which happens
+           *  on navigation (onStartDateChange)
+           * 
+           */
+          
+          this.fireEvent( "beforeReDo" );
           
           this._destroyDays();
           this._destroyData();
@@ -2754,11 +2913,14 @@ version: 1.0
     					   // Add the diary item for relevant day
                  
                  newData = Lang.merge( currentData, {  
+                     UID: currentData[fieldMap.UID],
                      DTSTART: currentData[fieldMap.DTSTART],
                      DTEND:   currentData[fieldMap.DTEND],
                      SUMMARY: currentData[ fieldMap.SUMMARY ],
                      DESCRIPTION: currentData[ fieldMap.DESCRIPTION ],
                      URL : currentData[ fieldMap.URL ],
+                     CATEGORIES: currentData[fieldMap.CATEGORIES],
+                     LOCATION: currentData[fieldMap.LOCATION],
                      backClass: currentData[ fieldMap.backClass ],
                      detailClass: currentData[ fieldMap.detailClass ]                   
                  } );
@@ -3431,4 +3593,4 @@ version: 1.0
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "006"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "007"});
