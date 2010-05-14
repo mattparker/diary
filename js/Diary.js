@@ -2440,12 +2440,21 @@ version: 1.0
       * @return {DiaryItem}  The new item created
       */
      addItem: function( oCfg , render ){
-     
+   
         var itemDay, newItem, firstItem, itemDayDate, nextColumn, newConfig;
      
         if( render === undefined || render === null ){
           render = false;
         }
+        
+        /**
+         * @event beforeAddItem
+         * @description Before an item is added to the Diary
+         * @param Object  Object literal containing data
+         */
+         
+        this.fireEvent( "beforeAddItem" , { data: oCfg } );
+
 
         
         // which column are we adding this to?
@@ -2614,7 +2623,12 @@ version: 1.0
      },
 
 
-     
+
+
+
+ 
+ 
+ 
      
      /**
       * @method getItem
@@ -2912,7 +2926,8 @@ version: 1.0
     					 } else {
     					   // Add the diary item for relevant day
                  
-                 newData = Lang.merge( currentData, {  
+                 newData = //Lang.merge( currentData, 
+                 {  
                      UID: currentData[fieldMap.UID],
                      DTSTART: currentData[fieldMap.DTSTART],
                      DTEND:   currentData[fieldMap.DTEND],
@@ -2923,7 +2938,7 @@ version: 1.0
                      LOCATION: currentData[fieldMap.LOCATION],
                      backClass: currentData[ fieldMap.backClass ],
                      detailClass: currentData[ fieldMap.detailClass ]                   
-                 } );
+                 }// );
                  this.addItem( newData );
 
                }
@@ -3593,4 +3608,4 @@ version: 1.0
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "007"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "008"});
