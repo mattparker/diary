@@ -54,6 +54,13 @@ version: 1.0
         CLASS_DIARY_COLLABEL           = "yui-diary-collabel",
         CLASS_DIARY_ITEM_HIDDEN        = "yui-diary-item-hidden",
         CLASS_DIARY_SELECTOR           = "yui-diary-selector",
+        CLASS_DIARY_LOADING            = "yui-diary-loading",
+        CLASS_DIARY_LOADING_HIDDEN     = "yui-diary-loading-hidden",
+        
+        
+        // valid fields that a DiaryItem can contain
+        ITEM_FIELDS = ["UID", "DTSTART", "DTEND", "SUMMARY", "DESCRIPTION", 
+                       "URL", "CATEGORIES", "LOCATION", "backClass", "detailClass"],
         
   /**
    *
@@ -72,6 +79,8 @@ version: 1.0
    */
   DiaryItem = function (el, oCfg) {
 
+        // add some extra divs and things:
+        this.initContent(el);
      
         oCfg.handles = [];
         if (oCfg.resizeTop) { 
@@ -86,6 +95,7 @@ version: 1.0
         oCfg.hiddenHandles = true;
         oCfg.proxy = false;
         oCfg.yTicks = parseInt(oCfg.pxPerHour / 4, 10);
+        oCfg.status = false;
 
 
         // add a drag drop separately
@@ -118,7 +128,7 @@ version: 1.0
      
 
 
-        this.initContent();
+        
         this.initListeners();
 
 
@@ -227,12 +237,10 @@ version: 1.0
           * @attribute UID
           * @description The unique id of the item.  Write once.
           * @default: ''
-          * @type String
           */
          this.setAttributeConfig('UID', {
          
            value: '',
-           validator: Lang.isString,
            writeOnce: true
          
          });
@@ -318,6 +326,13 @@ version: 1.0
                // just one category
                this._categories = [spaceToHyphen(v)];
              }
+             
+             
+            // add categories as classes if needed:
+            if (this.get("useCssCategories") && this._categories.length > 0) {
+              Dom.addClass( this.get("element"), this._categories.join(" ") );
+            }
+            
            }
          });
          
@@ -370,7 +385,10 @@ version: 1.0
          this.setAttributeConfig('backClass', {
          
            value: '',
-           validator: Lang.isString
+           validator: Lang.isString,
+           method: function(v) {
+               Dom.addClass(this.get("element"), v);
+           }
          
          });
          
@@ -383,7 +401,10 @@ version: 1.0
          this.setAttributeConfig('detailClass', {
          
            value: '',
-           validator: Lang.isString
+           validator: Lang.isString,
+           method: function(v) {
+                   Dom.addClass(this._detailsEl, v);
+           }
          
          });
 
@@ -503,27 +524,23 @@ version: 1.0
       },
       
       
+
+
+
+
       /**
        * @description Initializer, sets up the details Element
        * @protected
        * @method initContent
+       * @param el {HTMLElement|String} Element passed to constructor
        */
-      initContent: function() {
+      initContent: function(el) {
 
-        var i = 0,
-            detailsEl = document.createElement("div");
+        var detailsEl = document.createElement("div");
             
         // add some classes
         Dom.addClass(detailsEl, CLASS_DIARY_ITEM_DETAILS );
-        Dom.addClass(detailsEl, this.get("detailClass"));
-        this.get("element").appendChild(detailsEl);
-        
-        Dom.addClass(this.get("element"), this.get("backClass"));
-        
-        // add categories as classes if needed:
-        if (this.get("useCssCategories") && this._categories.length > 0) {
-          Dom.addClass( this.get("element"), this._categories.join(" ") );
-        }
+        el.appendChild(detailsEl);
 
         this._detailsEl = detailsEl;
       
@@ -668,7 +685,7 @@ version: 1.0
             cacheStart = cache.DTSTART ,
             cacheEnd   = cache.DTEND ;
       
-        this.dragdrop.lock();
+        
 
         /**
          * @event itemBeforeEndMove
@@ -694,9 +711,14 @@ version: 1.0
              // reset dates to where they started from:
              this.set( "DTSTART" , cacheStart );
              this.set( "DTEND", cacheEnd );
-           
+             // and tidy up:
+             this._cacheDates = {};
+             Dom.setStyle( element , "z-index" , 1 );   
+                     
         } else {
         
+            this.dragdrop.lock();
+            
             
             // change the times
             if( this.get( "multiDayPosition" ) === false || this.get( "multiDayPosition" ) == "first" ){
@@ -1119,16 +1141,16 @@ version: 1.0
        * @description Destroys the DiaryItem
        */
       destroy : function() {
-      
+  
         var i = 0, 
             numChildren = this._multiDayChildren.length,
             el = this.get("element"),
             parent = el.parentNode;
       
         if (this.dragdrop) {
-          this.dragdrop.destroy();
+          this.dragdrop.unreg();
+          delete this.dragdrop;
         }
-
 
         this._line = null;
         this._detailsEl = null;
@@ -1137,7 +1159,7 @@ version: 1.0
           this.anim = false;
         }
         this._cacheDates = null;
-  
+
         if (numChildren> 0) {
           for (i = 0; i < numChildren; i++) {
             this._multiDayChildren.destroy();
@@ -1562,7 +1584,7 @@ version: 1.0
      removeItemFromBlock: function( item ){
        
        var i, blocks = this._blocks;
-       
+
        for( i = 0 ; i < blocks.length; i ++ ){
          if( blocks[i].removeItem( item ) ){
            return true;
@@ -1764,6 +1786,7 @@ version: 1.0
     Diary.superclass.constructor.call( this, el, oCfg);
 
     this.setupDays();
+    this._renderCoreDiary();
     this.initListeners();
     
     this.initData(el, oCfg, oDS );
@@ -1848,6 +1871,16 @@ version: 1.0
       * @protected
       */
       _filters: {},
+      
+      
+      /**
+       * @property _loadingElId
+       * @type String
+       * @description Id of 'loading' element
+       * @protected
+       * @default ''
+       */ 
+      _loadingElId: '',
 
 
      /**
@@ -1913,7 +1946,8 @@ version: 1.0
             value: true,
             method: function(v){
               if( v && this.get( "width" ) ){
-                this._colWidth = this.get( "width" ) / 8; // ( 7 days / week )
+                // 7 days / week . 7 pixels to allow for scrollbars etc.
+                this._colWidth = parseInt(this.get( "width" ) / 7, 10) - 7;
               } else {
                 this._colWidth = 200;
               }
@@ -1963,13 +1997,20 @@ version: 1.0
 
            /**
             * @attribute fieldMap
-            * @description  Field map, mapping keys of DataSource to expected 
+            * @description  
+            * <p>Field map, mapping keys of DataSource to expected 
             * keys of data for DiaryItems.  DiaryItem keys are the keys in the 
             * object passed; values are the names of the fields in the DataSource.
             * backClass is the css class string applied to the background container of the
             * DiaryItem; detailClass is the css class string applied to the element
             * holding the text of the item.  These can be used by addItemFilter
-            * to show or hide items by category.  Write once
+            * to show or hide items by category.</p>
+            * <p>DTSTART and DTEND need to be strings; but other values may be
+            * functions.  These functions are called on the Diary instance (i.e.
+            * this in your function is the Diary, and receive the raw data literal
+            * as their only argument.</p>
+            *
+            * Write once
             *
             * @type {Object}
             * @default <pre> 
@@ -2135,7 +2176,7 @@ version: 1.0
         */
        initListeners: function(){
        
-          this.on( "parseData" , this.render, this );
+          this.on( "parseData" , this.renderItems, this );
           
           // click and drag new items
           Ev.delegate(this.get("element"), "mousedown", this._startNewItem, "div." + CLASS_DIARY, this, true);
@@ -2646,6 +2687,36 @@ version: 1.0
      },     
      
      
+     /**
+      * @method removeItem
+      * @description Removes an item from the diary and destroys the element
+      * @param item {Object}  DiaryItem to remove
+      */
+     removeItem : function(item) {
+       
+       if (item === undefined) {
+         return false;
+       }
+              
+       
+       var elId = item.get("element").id,
+           col = item.get("column");
+
+
+       col.removeItemFromBlock( item );
+
+       item.destroy();
+       delete item;
+
+       delete this._itemHash[ elId ] ;
+       
+       col._rebuildBlocks();
+       col._renderBlocks(); 
+
+       
+     },
+     
+     
      
      /**
       *
@@ -2800,7 +2871,7 @@ version: 1.0
        * @protected
        */
       _reDo: function(){
-      
+  
           /**
            * @event beforeReDo
            * @description Fired before the Diary is redrawn, which happens
@@ -2861,6 +2932,8 @@ version: 1.0
 	     */
 	    _getData: function( oDS ){
          
+         this._renderLoading();
+         
          oDS.sendRequest( oDS , { success: this._parseData,            
 											            failure: this._dataFailed,
 											            scope: this 
@@ -2893,7 +2966,7 @@ version: 1.0
                    currentData = {},
                    fieldMap = this.get("fieldMap");
       
-        
+
         
          for( i = 0; i < num; i++ ){
         
@@ -2926,8 +2999,7 @@ version: 1.0
     					 } else {
     					   // Add the diary item for relevant day
                  
-                 newData = //Lang.merge( currentData, 
-                 {  
+                /* newData = {  
                      UID: currentData[fieldMap.UID],
                      DTSTART: currentData[fieldMap.DTSTART],
                      DTEND:   currentData[fieldMap.DTEND],
@@ -2939,7 +3011,9 @@ version: 1.0
                      backClass: currentData[ fieldMap.backClass ],
                      detailClass: currentData[ fieldMap.detailClass ]                   
                  }// );
-                 this.addItem( newData );
+                 */
+                 newData = this._parseDataUsingFieldmap(currentData);
+                 this.addItem(newData);
 
                }
            }
@@ -2947,6 +3021,9 @@ version: 1.0
           }
            
          }
+      
+      
+       this._renderLoading();
       
        /**
         * Fired when data parsed and ready
@@ -2966,6 +3043,48 @@ version: 1.0
 	    },
 	    
 	    
+	    
+	    /**
+	     * @method _parseDataUsingFieldMap
+	     * @description Uses fieldMap given in config to extract from raw data
+	     * to format expected by DiaryItems.  Values in the fieldMap may be strings
+	     * or functions, so this applies them as appropriate.
+	     * @protected
+	     * @param oData {Object}  Object literal containing raw data to be parsed
+	     * @return {Object} Object literal containing parsed data.
+	     */ 
+	    _parseDataUsingFieldmap : function (oData) {
+	        var data = {},
+	            fieldMap = this.get("fieldMap"),
+	            i = 0,
+	            field,
+	            fieldKey,
+	            that = this;
+	        
+	        // Loop through valid fields, and get data from oData as necessary.
+	        for (i; i < ITEM_FIELDS.length; i++) {
+	        
+	          field = ITEM_FIELDS[i];
+	          fieldKey = fieldMap[field];
+	          
+	          if (fieldKey !== undefined) {
+	        
+  	          if (YAHOO.lang.isString(fieldKey)) {
+  	            data[field] = oData[fieldKey];
+  	          } else if (YAHOO.lang.isFunction(fieldKey)) {
+                data[field] = fieldKey.call(that, oData);
+  	          }
+  	          
+	          }
+	        
+	        }
+     
+	        return data;
+	    },
+
+	    
+	    
+	    
 	    /**
 	     * @description Looks for the first day between startDate and endDate that has a column
 	     * in the diary; multi-day items may not start in range but may go into it.
@@ -2975,7 +3094,7 @@ version: 1.0
 	     * @private
 	     */
 	    _findFirstItemDay: function( startDate, endDate ){
-	    
+
 	      var testDate = startDate,
             testZeroDay = new Date( testDate.getFullYear(), testDate.getMonth(), testDate.getDate() , 0 , 0 , 0 , 0 ).setHours(0,0,0,0);
 	      
@@ -3041,6 +3160,8 @@ version: 1.0
 	     * @private
 	     */
 	    _dataFailed: function( req ){
+
+          this._renderLoading();
 
           YAHOO.log( "Failed to get data" );
           /**
@@ -3116,13 +3237,12 @@ version: 1.0
        */
       render: function(){
 
-         this.addClass( CLASS_DIARY_CONTAINER);
+
+         this._renderCoreDiary();
          
-         this._renderDays();
+         this.renderItems();
          
-         this._renderNav();
-         
-         this._renderTooltip();
+
          
          /**
           * @event render
@@ -3133,6 +3253,24 @@ version: 1.0
 
       },
       
+      
+      /**
+       * @method _renderCoreDiary
+       * @description Renders the Diary except for the items
+       * 
+       */
+      _renderCoreDiary : function() {
+         
+         this.addClass( CLASS_DIARY_CONTAINER);
+         
+         //this._renderDays();
+         
+         this._renderNav();
+         
+           
+
+         this._renderTooltip();
+      },
       
 
       /**
@@ -3192,7 +3330,7 @@ version: 1.0
           
           calContainer.id = calId;
           navContainer.appendChild( calShowButton );
-          navContainer.appendChild( calContainer );
+          document.body.appendChild( calContainer );
 
         }
         
@@ -3299,25 +3437,15 @@ version: 1.0
       },
       
       /**
-       * @method _renderDays
-       * @description Loops through starting at startdate to render days
+       * @method _setDiaryPosition
+       * @description Sets the height of the visible pane and scrollTop to 
+       * show the correct segment of the Diary (e.g. 8am to 7pm)
        * @private
        */
-      _renderDays: function() {
-      
-        var i, dayHeight, scrollTop;
-      
+      _setDiaryPosition: function() {
+     
+        var dayHeight, scrollTop;
 
-        for( i = this.get("startDate").getTime() ; i < this.get("startDate").getTime() + 604800000 ; i += 86400000 ) {
-        
-          if( this._diaryData[ i ] !== undefined ) {
-          
-             this._diaryData[ i ].render();
-          
-          }
-        
-        }
- 
         // set the style of the containers to get the height:
         dayHeight = ( this.get("display").endTime - this.get("display").startTime ) * this.get("pxPerHour"); 
         Dom.getElementsByClassName( CLASS_DIARYDAY_CONTAINER, "div", this._calHolder, 
@@ -3371,6 +3499,30 @@ version: 1.0
       
       
       /**
+       * @method renderItems
+       * @description Renders the diary Items onto the Diary
+       * @public
+       */
+      renderItems : function() {
+        
+        var i;
+      
+        for( i = this.get("startDate").getTime() ; i < this.get("startDate").getTime() + 604800000 ; i += 86400000 ) {
+        
+          if( this._diaryData[ i ] !== undefined ) {
+          
+             this._diaryData[ i ].render();
+          
+          }
+        
+        }
+        
+        // set the scrollTop and position of the visible pane:
+        this._setDiaryPosition();
+      },
+      
+      
+      /**
        * @method _renderTooltip
        * @description Renders tooltip for showing full info
        * @protected
@@ -3389,6 +3541,34 @@ version: 1.0
       
       },
       
+      
+      
+      /**
+       * @method _renderLoading
+       * @description Adds a div with a 'loading' class to indicate data's on 
+       * it's way.  
+       * @TODO Sort out - messes with navigation currently...
+       */
+      _renderLoading : function() {
+      return;
+       /* var elId;
+      
+        if(this._loadingElId === '') {
+          elId = Dom.generateId();
+          this.getNavContainer().innerHTML += "<div class='" + CLASS_DIARY_LOADING + ' ' + CLASS_DIARY_LOADING_HIDDEN + "' id='" + elId + "'>loading data...</div>";
+          this._loadingElId = elId;
+        } else {
+          elId = this._loadingElId;
+        }
+        
+        if (Dom.hasClass( elId, CLASS_DIARY_LOADING_HIDDEN )) {
+          Dom.removeClass(elId, CLASS_DIARY_LOADING_HIDDEN);
+        } else {
+          Dom.addClass(elId, CLASS_DIARY_LOADING_HIDDEN);
+        }
+      */
+      
+      },
 
       
       /**
@@ -3422,17 +3602,58 @@ version: 1.0
        * @param selector {String}
        * @return {Int} Number of items shown
        */      
-      removeItemFilter: function( selector ){
-        var i, 
-        items = YAHOO.util.Selector.query( "." + CLASS_DIARY_ITEM + selector, this.get("element") );
-        
-        for( i = 0; i < items.length; i++ ){
-          Dom.removeClass( items[i], CLASS_DIARY_ITEM_HIDDEN);
-        }
+      removeItemFilter: function(selector) {
+        var i,
+        f, 
+        items = YAHOO.util.Selector.query( "." + CLASS_DIARY_ITEM + selector, this.get("element") ),
+        itemsToRemoveFilter = false,
+        remainingFilters = [];
+
         // remove this filter from memory.
         this._filters[ selector ] = undefined;
         
+        // Now build a test selectors based on remaining filters applied:
+        for (f in this._filters) {
+          if( Lang.isString(f) && this._filters[f] === true ){
+             remainingFilters.push("." + CLASS_DIARY_ITEM + f);
+          }
+        }
+        if (remainingFilters.length > 0 ) {
+          itemsToRemoveFilter = remainingFilters.join(", ");
+        } 
+
+        // loop through items that matched the given selector,
+        // but check that they shouldn't still be hidden because of other
+        // filters applied
+        for( i = 0; i < items.length; i++ ){
+          if (itemsToRemoveFilter === false) {
+            Dom.removeClass(items[i], CLASS_DIARY_ITEM_HIDDEN);
+          } else if ( !YAHOO.util.Selector.test(items[i], itemsToRemoveFilter)) {
+            Dom.removeClass(items[i], CLASS_DIARY_ITEM_HIDDEN);
+          }
+          
+        }
+        
         return i;      
+      },
+      
+      
+      /**
+       * @method toggleItemFilter
+       * @description Toggles an item filter
+       * @public
+       * @param selector {String}
+       * @return {Int} Number of items shown/hidden: positive => shown; negative 
+       * value => hidden
+       */
+      toggleItemFilter : function(selector) {
+      
+        if (this._filters[ selector ] !== undefined) {
+          return this.removeItemFilter(selector);
+        } else {
+          return -1 * this.addItemFilter(selector);
+        }
+      
       },
       
       /**
@@ -3608,4 +3829,4 @@ version: 1.0
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "008"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.0", build: "009"});

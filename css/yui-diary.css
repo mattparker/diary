@@ -103,3 +103,8 @@ position:absolute;
 z-index:5;
 background-color: white;
 }
+
+.yui-diary-container .yui-diary-loading-hidden{
+display:none;
+visibility:hidden;
+}
