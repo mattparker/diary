@@ -1,3 +1,4 @@
+
 .yui-skin-sam .yui-diary-container{
  border: 1px solid #DCDDDF;
  padding:2px;
@@ -41,6 +42,10 @@
   -webkit-border-bottom-left-radius:3px;
   -webkit-border-bottom-right-radius:3px;
 }
+.yui-skin-sam .yui-diary-container.yui-diary-view-month .yui-diary-item{
+  border-width: 1px;
+  margin-bottom:1px;
+}
 
 .yui-skin-sam .yui-diary-container .yui-diary-collabel-container{
 background:transparent url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 -1400px;
@@ -72,7 +77,21 @@ background:transparent url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/s
   border-left:0 none;
   border-bottom:0 none;
 }
-
+.yui-skin-sam  .yui-diary-container .yui-diary-today .yui-diary-background,
+.yui-skin-sam  .yui-diary-container.yui-diary-view-month .yui-diary-today{
+border:1px solid black;
+margin:-1px;
+}
+.yui-skin-sam .yui-diary-container.yui-diary-view-month .yui-diary-background{
+  border:0 none;
+  height:100px;
+  position:absolute;
+  width:100px;
+}
+.yui-skin-sam .yui-diary-container.yui-diary-view-month .yui-diary-background div{
+  font-size:10px;
+  color:gray;
+}
 
 .yui-skin-sam .yui-diary-container .yui-diary-nav  {
 background:#EFF4FF url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 0;
@@ -84,21 +103,19 @@ background:#EFF4FF url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/s
  width: 100%;
 }
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-right {
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -500px;
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -415px;
 }
-
+.yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-view {
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -332px;
+}
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-today{
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -300px;
-right:18px;
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -248px;
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-left {
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -450px;
-right:83px;
-margin-left:10px;
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -373px;
 }
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-calbutton{
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -350px;
-right:55px;
-margin-left:10px;
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -291px;
+margin-top:1px;
 }

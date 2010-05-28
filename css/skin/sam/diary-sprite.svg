@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg2383"
+   sodipodi:version="0.32"
+   inkscape:version="0.46"
+   width="40"
+   height="2150"
+   version="1.0"
+   sodipodi:docname="diary-sprite.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="C:\wamp\www\lamplight33\css\diary-sprite.png"
+   inkscape:export-xdpi="75"
+   inkscape:export-ydpi="75">
+  <metadata
+     id="metadata2388">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs2386">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective2390" />
+    <filter
+       inkscape:collect="always"
+       id="filter3222">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.076216005"
+         id="feGaussianBlur3224" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     inkscape:window-height="667"
+     inkscape:window-width="640"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     guidetolerance="10.0"
+     gridtolerance="10.0"
+     objecttolerance="10.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     showgrid="false"
+     inkscape:zoom="13.752558"
+     inkscape:cx="17.650873"
+     inkscape:cy="1743.7835"
+     inkscape:window-x="1318"
+     inkscape:window-y="17"
+     inkscape:current-layer="svg2383" />
+  <image
+     xlink:href="diary-sprite.png"
+     sodipodi:absref="C:\Documents and Settings\Matt_2\yui2-diary\css\skin\sam\diary-sprite.png"
+     width="40"
+     height="2150"
+     id="image2392"
+     x="0"
+     y="0" />
+  <path
+     style="fill:none;fill-rule:evenodd;stroke:#6d6d6d;stroke-width:1.60000002;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     d="M 6.203112,302.51904 C 11.248243,301.9411 12.723379,303.76336 13.638533,305.26484 C 15.414398,308.17846 13.401405,312.18532 13.401405,312.18532"
+     id="path2394"
+     sodipodi:nodetypes="csc" />
+  <path
+     style="fill:none;fill-rule:evenodd;stroke:#6d6d6d;stroke-width:1.60000002;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     d="M 10.68892,307.9427 C 12.506764,309.17884 12.845234,312.35674 13.488399,312.16009 C 14.205338,311.4605 15.225891,311.37904 16.651447,308.4517 C 17.237956,307.24732 17.487656,305.43407 17.487656,305.43407"
+     id="path3174"
+     sodipodi:nodetypes="ccsc" />
+  <text
+     xml:space="preserve"
+     style="font-size:19.01984787px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#6d6d6d;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Elephant"
+     x="6.7206869"
+     y="395.76224"
+     id="text3182"
+     sodipodi:linespacing="125%"
+     transform="scale(1.0944056,0.913738)"><tspan
+       sodipodi:role="line"
+       id="tspan3184"
+       x="6.7206869"
+       y="395.76224"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#6d6d6d;fill-opacity:1;font-family:Franklin Gothic Demi;-inkscape-font-specification:Franklin Gothic Demi">c</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:9.53763389999999940px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#6d6d6d;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Elephant;filter:url(#filter3222)"
+     x="2.074086"
+     y="326.76215"
+     id="text3186"
+     sodipodi:linespacing="125%"
+     transform="scale(0.7948029,1.2581736)"><tspan
+       sodipodi:role="line"
+       id="tspan3188"
+       x="2.074086"
+       y="326.76215"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Franklin Gothic Demi;-inkscape-font-specification:Franklin Gothic Demi;fill:#6d6d6d;fill-opacity:1">1.7.31</tspan></text>
+</svg>
