@@ -1280,8 +1280,14 @@ version: 1.20
           delete this.dragdrop;
         }
 
-        this._dds.b.unreg();
-        this._dds.t.unreg();
+        if (Lang.isObject(this._dds)) {
+          if (Lang.hasOwnProperty(this._dds, "b")) {
+            this._dds.b.unreg();
+          }
+          if (Lang.hasOwnProperty(this._dds, "t")) {
+            this._dds.t.unreg();
+          }
+        }
         
 
         this._line = null;
@@ -1294,7 +1300,9 @@ version: 1.20
 
         if (numChildren> 0) {
           for (i = 0; i < numChildren; i++) {
-            this._multiDayChildren.destroy();
+            if (Lang.hasOwnProperty(this._multiDayChildren[i], "destroy")) {
+               this._multiDayChildren[i].destroy();
+            }
           }
         }
         this._multiDayChildren = null;
@@ -3320,7 +3328,7 @@ version: 1.20
        */
       _reDo: function (getData) {
 
-          
+
           this.set("endDate", DM.add(this.get("startDate"), DM.DAY, this.get("display").getDaysInView));
 
           /**
@@ -4420,7 +4428,7 @@ version: 1.20
 
 
 
-        /**
+        /** 
          * @event itemBeforeStartMove
          * @description Fired before everything starts moving.  Return false to cancel move.
          * @param oArgs.item   DiaryItem that's about to be moved.
@@ -4458,4 +4466,4 @@ if(YAHOO.env.ua.ie && ((!document.documentMode && YAHOO.env.ua.ie<8) || document
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.20", build: "010"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.20", build: "011"});
