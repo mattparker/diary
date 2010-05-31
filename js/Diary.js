@@ -2135,7 +2135,8 @@ version: 1.20
 
            /**
             * @attribute startDate
-            * @description When to start the diary display from
+            * @description When to start the diary display from.  Will change this
+            * to the correct day if keepFirstDay is set.
             * @type {Date}
             */
            this.setAttributeConfig('startDate', {
@@ -2182,7 +2183,7 @@ version: 1.20
             * and start and end times (in 24-hour clock hours) displayed
             * in the main window (the rest are above and below the scroll.
             * <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>.
-            * The only format available currently is "week".  Write once.
+            * Formats available are "day", "week", and "month".
             * @type Object
             * @default <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>
             */  
@@ -2321,7 +2322,8 @@ version: 1.20
             * <p>DTSTART and DTEND need to be strings; but other values may be
             * functions.  These functions are called on the Diary instance (i.e.
             * this in your function is the Diary, and receive the raw data literal
-            * as their only argument.</p>
+            * as their only argument.  They must return the actual value, not
+            * a field name.</p>
             *
             * Write once
             *
@@ -3726,7 +3728,8 @@ version: 1.20
       
       /**
        * @method _renderCoreDiary
-       * @description Renders the Diary except for the items
+       * @description Renders the Diary except for the items.
+       * @protected
        * 
        */
       _renderCoreDiary : function () {
@@ -4040,9 +4043,10 @@ version: 1.20
       
       /**
        * @method _renderLoading
-       * @description Adds a div with a 'loading' class to indicate data's on 
-       * it's way.  
+       * @description Will adds a div with a 'loading' class to indicate data's on 
+       * it's way.  Doesn't do anything at the moment.
        * @TODO Sort out - messes with navigation currently...
+       * @protected.
        */
       _renderLoading : function() {
       return;
