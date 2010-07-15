@@ -136,3 +136,15 @@ background-color: white;
 display:none;
 visibility:hidden;
 }
+
+.yui-diary-container .yui-diary-goto-weekview{
+cursor:pointer;
+float:left;
+font-size:9px;
+height:69px;
+margin-left:-2px;
+padding-top:30px;
+text-align:center;
+overflow:hidden;
+width:10px;
+}

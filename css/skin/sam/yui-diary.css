@@ -119,3 +119,7 @@ background:transparent url(diary-sprite.png) no-repeat scroll 0 -373px;
 background:transparent url(diary-sprite.png) no-repeat scroll 0 -291px;
 margin-top:1px;
 }
+
+.yui-skin-sam .yui-diary-container .yui-diary-goto-weekview{
+ background-color: #EDF5FF;
+}

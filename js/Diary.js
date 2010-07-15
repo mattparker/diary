@@ -2,7 +2,7 @@
 Copyright (c) 2010, Lamplight Database Systems Limited, http://www.lamplightdb.co.uk
 Code licensed under the BSD License:
 http://developer.yahoo.com/yui/license.html
-version: 1.20
+version: 1.21
 */
 
 
@@ -26,6 +26,7 @@ version: 1.20
  * v 1.0    Initial release.  Core data, UI, navigation and events.
  * v 1.1    Single day view added
  * v 1.2    Month view added
+ * v 1.21   Navigate from month to week view button at end of rows.
  *
  */
 (function () {
@@ -35,6 +36,7 @@ version: 1.20
         Ev  = YAHOO.util.Event,
         DM  = YAHOO.widget.DateMath,
         Lang = YAHOO.lang,
+        Selector = YAHOO.util.Selector,
       
       
 
@@ -69,6 +71,7 @@ version: 1.20
                                            WEEK:  "yui-diary-view-week",
                                            DAY:   "yui-diary-view-day"},
         CLASS_DIARY_ITEM_MONTHVIEW     = "yui-diary-item-monthview",
+        CLASS_DIARY_GOTO_WEEK          = "yui-diary-goto-weekview",
         
         
         
@@ -2079,6 +2082,17 @@ version: 1.20
       _loadingElId: '',
 
 
+
+      /**
+       * @property _cacheStartEndTimes
+       * @type Object
+       * @description Caches start/end times for view changes
+       * @protected
+       * @default {startTime: 8; endTime: 20}
+       */      
+      _cacheStartEndTimes: {startTime: 8, endTime: 20},
+
+
      /**
       * @method initAttributes
       * @param Object
@@ -2135,8 +2149,7 @@ version: 1.20
 
            /**
             * @attribute startDate
-            * @description When to start the diary display from.  Will change this
-            * to the correct day if keepFirstDay is set.
+            * @description When to start the diary display from
             * @type {Date}
             */
            this.setAttributeConfig('startDate', {
@@ -2183,7 +2196,7 @@ version: 1.20
             * and start and end times (in 24-hour clock hours) displayed
             * in the main window (the rest are above and below the scroll.
             * <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>.
-            * Formats available are "day", "week", and "month".
+            * Formats may be "day", "week", or "month"
             * @type Object
             * @default <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>
             */  
@@ -2192,7 +2205,20 @@ version: 1.20
              method: function( v ) {
              
                var pxPerHour = this.get("pxPerHour");
-             
+              
+
+              
+               if (v.startTime >= 0) {
+                 this._cacheStartEndTimes.startTime = v.startTime;
+               } else {
+                 v.startTime = this._cacheStartEndTimes.startTime;
+               }
+               if (v.endTime >= 0) {
+                 this._cacheStartEndTimes.endTime = v.endTime;
+               } else {
+                 v.endTime = this._cacheStartEndTimes.endTime;
+               }
+            
                // add some methods to the object:
                switch (v.format) {
 
@@ -2322,8 +2348,7 @@ version: 1.20
             * <p>DTSTART and DTEND need to be strings; but other values may be
             * functions.  These functions are called on the Diary instance (i.e.
             * this in your function is the Diary, and receive the raw data literal
-            * as their only argument.  They must return the actual value, not
-            * a field name.</p>
+            * as their only argument.</p>
             *
             * Write once
             *
@@ -2494,6 +2519,9 @@ version: 1.20
           // listener for header clicks
           Ev.delegate(this.get("element"), "click", this._handleColumnHeaderClick, "span." + CLASS_DIARY_COLLABEL, this, true);
           
+          // listend for month -> week view change clicks:
+          Ev.delegate(this.get("element"), "click", this._handleMonthToWeekClick, "div." + CLASS_DIARY_GOTO_WEEK, this, true);
+          
           // change display date
           this.on("startDateChange", this._reDo, true, this);
           
@@ -2523,7 +2551,9 @@ version: 1.20
               displayFormat = this.get("display"),
               // default = week (604800000)
               limitTime = zeroTime + displayFormat.getSeconds,
-              that = this;
+              that = this,
+              dayCount = 0,
+              jumpToWeekEl;
 
 
         
@@ -2533,6 +2563,12 @@ version: 1.20
 
           
           dayEl.className = CLASS_DIARY_DAY;
+          
+          if (displayFormat.format == "month") {
+            jumpToWeekEl = document.createElement("div");
+            Dom.addClass(jumpToWeekEl, CLASS_DIARY_GOTO_WEEK);
+            jumpToWeekEl.innerHTML = "&gt;<br/>&gt;";
+          }
           
           // loop through from start to end adding a new DiaryDay for each
           for( i = zeroTime ; i < limitTime ; i += 86400000 ) {
@@ -2546,6 +2582,10 @@ version: 1.20
             parent.appendChild( newDayEl );
             this._colToDayMap[j] = i;
         
+            dayCount++;
+            if (dayCount%7 == 0 && displayFormat.format == "month") {
+              parent.appendChild(jumpToWeekEl.cloneNode(true));
+            }
                     
           }
           
@@ -3234,6 +3274,27 @@ version: 1.20
      },
      
      
+     /**
+      * @method _handleMonthToWeekClick
+      * @description Handles clicks on the right-hand 'go to week view' 
+      * when in month view.  Works out which week it is and then reformats.
+      * @protected
+      */     
+     _handleMonthToWeekClick: function (ev, el, container) {
+
+       // work out the date of the previous day: this will be the end of the week
+       var newEndDate = new Date(this._colToDayMap[ Dom.getPreviousSibling(el).id ]),
+           newStartDate = DM.subtract(newEndDate, DM.DAY, 6);
+
+       this.set("startDate", newStartDate, true);
+       this._changeView();
+
+       this.set("display", { format: "week" }, false);
+     
+     },
+     
+     
+     
      
      /**
       *
@@ -3308,15 +3369,17 @@ version: 1.20
        * @description Changes between views (day/week/month)
        * @protected
        */
-      _changeView : function () {
+      _changeView : function (ev, el, newDisplay) {
       
         YAHOO.log("Diary._changeView", "info");
         
-        var newDisplay = {},
-            display = this.get("display");
-        newDisplay.format = display.getNextFormat;
-        newDisplay.startTime = display.startTime;
-        newDisplay.endTime = display.endTime;
+        var display = this.get("display"),
+            newDisplay = newDisplay || {
+              format: display.getNextFormat,
+              startTime : display.startTime,
+              endTime : display.endTime
+            };  
+
         this.set("display", newDisplay);
       
       },
@@ -3728,9 +3791,8 @@ version: 1.20
       
       /**
        * @method _renderCoreDiary
-       * @description Renders the Diary except for the items.
+       * @description Renders the Diary except for the items
        * @protected
-       * 
        */
       _renderCoreDiary : function () {
          
@@ -4043,10 +4105,10 @@ version: 1.20
       
       /**
        * @method _renderLoading
-       * @description Will adds a div with a 'loading' class to indicate data's on 
-       * it's way.  Doesn't do anything at the moment.
+       * @description Adds a div with a 'loading' class to indicate data's on 
+       * it's way.  
+       * @protected
        * @TODO Sort out - messes with navigation currently...
-       * @protected.
        */
       _renderLoading : function() {
       return;
@@ -4213,10 +4275,12 @@ version: 1.20
         YAHOO.log( "Diary.addItemFilter" , "info" );        
  
         var i, 
-        items = YAHOO.util.Selector.query("." + CLASS_DIARY_ITEM + selector, this.get("element"));
+            items = Selector.query("." + CLASS_DIARY_ITEM + selector, this.get("element"));
 
         for( i = 0; i < items.length; i++ ){
-          Dom.addClass( items[i], CLASS_DIARY_ITEM_HIDDEN);
+
+             Dom.addClass( items[i], CLASS_DIARY_ITEM_HIDDEN);
+
         }
         this._filters[ selector ] = true;
         
@@ -4234,7 +4298,7 @@ version: 1.20
       removeItemFilter : function (selector) {
         var i,
         f, 
-        items = YAHOO.util.Selector.query("." + CLASS_DIARY_ITEM + selector, this.get("element") ),
+        items = Selector.query("." + CLASS_DIARY_ITEM + selector, this.get("element") ),
         itemsToRemoveFilter = false,
         remainingFilters = [];
 
@@ -4251,13 +4315,14 @@ version: 1.20
           itemsToRemoveFilter = remainingFilters.join(", ");
         } 
 
+
         // loop through items that matched the given selector,
         // but check that they shouldn't still be hidden because of other
         // filters applied
         for( i = 0; i < items.length; i++ ){
           if (itemsToRemoveFilter === false) {
             Dom.removeClass(items[i], CLASS_DIARY_ITEM_HIDDEN);
-          } else if ( !YAHOO.util.Selector.test(items[i], itemsToRemoveFilter)) {
+          } else if ( !Selector.test(items[i], itemsToRemoveFilter)) {
             Dom.removeClass(items[i], CLASS_DIARY_ITEM_HIDDEN);
           }
           
@@ -4314,7 +4379,7 @@ version: 1.20
             filters = this._filters;
         
         for (i in filters) {
-          if(Lang.isString(i) && filters[i] === true && YAHOO.util.Selector.test(el, i)) {
+          if(Lang.isString(i) && filters[i] === true && Selector.test(el, i)) {
             Dom.addClass(el, CLASS_DIARY_ITEM_HIDDEN);
           }
         }      
@@ -4470,4 +4535,4 @@ if(YAHOO.env.ua.ie && ((!document.documentMode && YAHOO.env.ua.ie<8) || document
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.20", build: "011"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.21", build: "012"});
