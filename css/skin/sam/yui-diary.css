@@ -41,6 +41,7 @@
   -webkit-border-top-right-radius:3px;
   -webkit-border-bottom-left-radius:3px;
   -webkit-border-bottom-right-radius:3px;
+  border-radius:3px;
 }
 .yui-skin-sam .yui-diary-container.yui-diary-view-month .yui-diary-item{
   border-width: 1px;
@@ -48,7 +49,7 @@
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-collabel-container{
-background:transparent url(../img/yui/sprite.png) repeat-x scroll 0 -1400px;
+background:transparent url(diary-sprite.png) repeat-x scroll 0 -1170px;
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-collabel{
@@ -70,6 +71,7 @@ background:transparent url(../img/yui/sprite.png) repeat-x scroll 0 -1400px;
   -webkit-border-top-right-radius:3px;
   -webkit-border-bottom-left-radius:3px;
   -webkit-border-bottom-right-radius:3px;
+  border-radius:3px;
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-background{
@@ -94,7 +96,7 @@ margin:-1px;
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-nav  {
-background:#EFF4FF url(../img/yui/sprite.png) repeat-x scroll 0 0;
+background:#EFF4FF url(diary-sprite.png) repeat-x scroll 0 0;
 }
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-title{
  font-size: 120%;
