@@ -55,7 +55,9 @@ padding-top:20px;
 .yui-diary-container.yui-diary-view-month .yui-diaryday-container{
  overflow: auto;
 }
-
+.yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-title {
+height:25px;
+}
 .yui-diary-container .yui-diary-collabel-container{
 height:24px;
 text-align:left;
@@ -98,7 +100,7 @@ width:100%;
 .yui-diary-container .yui-diary-nav .yui-diary-nav-right {
 bottom:0;
 cursor:pointer;
-height:25px;
+height:15px;
 margin-right:10px;
 top:2px;
 width:25px;
