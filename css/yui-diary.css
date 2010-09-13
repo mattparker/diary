@@ -5,6 +5,7 @@
  overflow:auto;
  position: relative;
  margin-top:1px;
+ 
 }
 .yui-diary-container .yui-diary-day{
   float: left;
@@ -80,7 +81,9 @@ cursor:default;
   border-left:0;
   border-bottom:0;
 }
-
+.yui-diary-container .ft{
+  height:20px;
+}
 
 
 
@@ -111,10 +114,11 @@ text-indent:-10000em;
 z-index:1;
 bottom:0;
 cursor:pointer;
-height:13px;
+height:17px;
 top:2px;
-width:22px;
-margin-right:10px;
+width:45px;
+
+margin-top:5px;
 float:left;
 }
 

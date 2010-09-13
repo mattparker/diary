@@ -32,7 +32,7 @@
   font-size: 9px;
   border: 1px solid #8899DD;
   border-width: 2px 1px;
-  background-color: #EDF5FF;
+  background-color: #EFF4FF;
   -moz-border-radius-bottomleft:3px;
   -moz-border-radius-bottomright:3px;
   -moz-border-radius-topleft:3px;
@@ -48,7 +48,7 @@
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-collabel-container{
-background:transparent url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 -1400px;
+background:transparent url(../img/yui/sprite.png) repeat-x scroll 0 -1400px;
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-collabel{
@@ -61,7 +61,7 @@ background:transparent url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/s
   font-size: 9px;
   border: 1px dotted #8899DD;
   border-width: 2px 1px;
-  background-color: #EDF5FF;
+  background-color: #EFF4FF;
   -moz-border-radius-bottomleft:3px;
   -moz-border-radius-bottomright:3px;
   -moz-border-radius-topleft:3px;
@@ -78,7 +78,7 @@ background:transparent url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/s
   border-bottom:0 none;
 }
 .yui-skin-sam  .yui-diary-container .yui-diary-today .yui-diary-background,
-.yui-skin-sam  .yui-diary-container.yui-diary-view-month .yui-diary-today{
+.yui-skin-sam  .yui-diary-container.yui-diary-view-month .yui-diary-today div.yui-diaryday-container{
 border:1px solid black;
 margin:-1px;
 }
@@ -94,7 +94,7 @@ margin:-1px;
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-nav  {
-background:#EFF4FF url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/sprite.png) repeat-x scroll 0 0;
+background:#EFF4FF url(../img/yui/sprite.png) repeat-x scroll 0 0;
 }
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-title{
  font-size: 120%;
@@ -103,7 +103,7 @@ background:#EFF4FF url(http://yui.yahooapis.com/2.8.0r4/build/assets/skins/sam/s
  width: 100%;
 }
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-right {
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -415px;
+background:transparent url(diary-sprite.png) no-repeat scroll 0 -499px;
 }
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-view {
 background:transparent url(diary-sprite.png) no-repeat scroll 0 -332px;
@@ -113,13 +113,13 @@ background:transparent url(diary-sprite.png) no-repeat scroll 0 -248px;
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-left {
-background:transparent url(diary-sprite.png) no-repeat scroll 0 -373px;
+background:transparent url(diary-sprite.png) no-repeat scroll 0px -457px;
 }
 .yui-skin-sam .yui-diary-container .yui-diary-nav .yui-diary-nav-calbutton{
 background:transparent url(diary-sprite.png) no-repeat scroll 0 -291px;
-margin-top:1px;
+margin-top:6px;
 }
 
 .yui-skin-sam .yui-diary-container .yui-diary-goto-weekview{
- background-color: #EDF5FF;
+ background-color: #EFF4FF;
 }

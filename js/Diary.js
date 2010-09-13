@@ -2,7 +2,7 @@
 Copyright (c) 2010, Lamplight Database Systems Limited, http://www.lamplightdb.co.uk
 Code licensed under the BSD License:
 http://developer.yahoo.com/yui/license.html
-version: 1.21
+version: 1.30
 */
 
 
@@ -25,8 +25,12 @@ version: 1.21
  * <strong>Changelog</strong>
  * v 1.0    Initial release.  Core data, UI, navigation and events.
  * v 1.1    Single day view added
- * v 1.2    Month view added
- * v 1.21   Navigate from month to week view button at end of rows.
+ * v 1.2    - Month view added.  
+ *          - Bug fix on Opera to set height and scrollTop.
+ *          - itemBeforeStartMove passed originEvent through to subscribers.
+ * v 1.3    Added footer and footerText config property.  
+ *          - Added dataRequest method
+ *          - Minor fixes
  *
  */
 (function () {
@@ -72,6 +76,7 @@ version: 1.21
                                            DAY:   "yui-diary-view-day"},
         CLASS_DIARY_ITEM_MONTHVIEW     = "yui-diary-item-monthview",
         CLASS_DIARY_GOTO_WEEK          = "yui-diary-goto-weekview",
+        CLASS_DIARY_FOOTER              = "ft",
         
         
         
@@ -438,6 +443,21 @@ version: 1.21
          
          });
          
+
+
+         /**
+          * @attribute block
+          * @description Reference to the block (ie group of items) this item is in
+          * @type Object DiaryBlock
+          */
+         this.setAttributeConfig('block', {
+         
+           value: null,
+           validator: Lang.isObject
+         
+         });
+
+
          
          /**
           * @attribute multiDayPosition
@@ -629,8 +649,9 @@ version: 1.21
          * @event itemBeforeStartMove
          * @description Fired before everything starts moving.  Return false to cancel move.
          * @param oArgs.item   DiaryItem that's about to be moved.
+         * @param oArgs.originEvent   Original event from resize/dragdrop passed through.
          */
-        if (false === this.getDiary().fireEvent("itemBeforeStartMove", {item: this})) {
+        if (false === this.getDiary().fireEvent("itemBeforeStartMove", {item: this, originEvent: ev})) {
            return stopDrag();
         }
         
@@ -1141,6 +1162,7 @@ version: 1.21
       render: function( oDetails ) {
 
         YAHOO.log( "DiaryItem.render()", "info");
+
         
         // set the offset and width
         var lineWidth,
@@ -1148,6 +1170,14 @@ version: 1.21
             l,
             t,
             h;
+        
+        if (!oDetails) {
+          oDetails = { 
+             linesInBlock: this.get("block")._lines.length, 
+             width: this.get("column").get("width") || 150 
+          };
+        }
+
             
         if (this.getDiary().get("display").format == "month") {
             w = oDetails.width - 20;
@@ -1424,6 +1454,7 @@ version: 1.21
     
       // store the item
       this._items.push( item );
+      item.set("block", this);
       
       this._items.sort( function( a,b ){ return ( a.startSecs < b.startSecs ); } );
       
@@ -1447,6 +1478,7 @@ version: 1.21
 
         if( allItems[ i ].get("id") == item.get("id") ) {
           allItems.splice( i, 1 );
+          item.set("block", null);
           return true;
         }
       }
@@ -2081,6 +2113,16 @@ version: 1.21
        */ 
       _loadingElId: '',
 
+      
+      
+      /**
+       * @property _footerEl
+       * @type HTMLElement
+       * @description Footer element
+       * @protected
+       * @default undefined
+       */ 
+      _footerEl: '',
 
 
       /**
@@ -2196,7 +2238,7 @@ version: 1.21
             * and start and end times (in 24-hour clock hours) displayed
             * in the main window (the rest are above and below the scroll.
             * <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>.
-            * Formats may be "day", "week", or "month"
+            * The only format available currently is "week".  Write once.
             * @type Object
             * @default <pre>{ format: "week", startTime: 8, endTime: 20 }</pre>
             */  
@@ -2305,6 +2347,9 @@ version: 1.21
               if( v && this.get( "width" ) ){
                 // 7 days / week . 7 pixels to allow for scrollbars etc.
                 this._colWidth = parseInt(this.get( "width" ) / this.get("display").getDaysAcross, 10) - 4;
+                if (this.get("display").format == "month") {
+                  this._colWidth -= 2;
+                }
               } else {
                 this._colWidth = 200;
               }
@@ -2425,6 +2470,14 @@ version: 1.21
              validator: Lang.isBoolean,
              value: false
            });
+
+           /**
+            * @attribute titleString
+            * @description String to put in footer element
+            * @type Object     Keys: text, hideDelay (optional)
+            * @default {text: "", hideDelay: 5000}
+            */             
+           this.setAttributeConfig( "footerString");
            
            
    
@@ -2527,6 +2580,9 @@ version: 1.21
           
           // change display format
           this.on("displayChange", this._reFormat, this);
+          
+          // Change footer text
+          this.on("footerStringChange", this._setFooter, this);
        
        },
 
@@ -2559,7 +2615,12 @@ version: 1.21
         
          Dom.addClass( calHolder, CLASS_DIARY );
          this._calHolder = calHolder;
-         this.get("element").appendChild(calHolder);
+
+         if (this._footerEl) {
+           this.get("element").insertBefore(calHolder, this._footerEl);
+         } else {
+           this.get("element").appendChild(calHolder);
+         }
 
           
           dayEl.className = CLASS_DIARY_DAY;
@@ -3463,6 +3524,14 @@ version: 1.21
        * @protected
        */
       _getData: function( oDS ){
+         /**
+          * Fired before data requested
+          * @event dataRequest
+          * @description Fired before data requested
+          * @param oArgs.DataSource    DataSource
+          * @param oArgs.target   Diary
+          */
+         this.fireEvent("dataRequest", {DataSource: oDS, target: this});
          
          this._renderLoading();
          
@@ -3530,20 +3599,7 @@ version: 1.21
                   YAHOO.log( "ERROR Data parsed not in range", "warn" );
                } else {
                  // Add the diary item for relevant day
-                 
-                /* newData = {  
-                     UID: currentData[fieldMap.UID],
-                     DTSTART: currentData[fieldMap.DTSTART],
-                     DTEND:   currentData[fieldMap.DTEND],
-                     SUMMARY: currentData[ fieldMap.SUMMARY ],
-                     DESCRIPTION: currentData[ fieldMap.DESCRIPTION ],
-                     URL : currentData[ fieldMap.URL ],
-                     CATEGORIES: currentData[fieldMap.CATEGORIES],
-                     LOCATION: currentData[fieldMap.LOCATION],
-                     backClass: currentData[ fieldMap.backClass ],
-                     detailClass: currentData[ fieldMap.detailClass ]                   
-                 }// );
-                 */
+
                  newData = this._parseDataUsingFieldmap(currentData);
                  this.addItem(newData);
 
@@ -3791,8 +3847,9 @@ version: 1.21
       
       /**
        * @method _renderCoreDiary
-       * @description Renders the Diary except for the items
        * @protected
+       * @description Renders the Diary except for the items
+       * 
        */
       _renderCoreDiary : function () {
          
@@ -3805,6 +3862,7 @@ version: 1.21
          //this._renderDays();
          
          this._renderNav();
+         this._renderFooter();
          
            
 
@@ -3997,15 +4055,20 @@ version: 1.21
        */
       _setDiaryPosition: function() {
      
-        var dayHeight, scrollTop;
+        var dayHeight, scrollTop, display = this.get("display");
 
         // set the style of the containers to get the height:
-        dayHeight = this.get("display").getDiaryHeight; 
+        
+        dayHeight = display.getDiaryHeight + "px"; 
         Dom.getElementsByClassName( CLASS_DIARYDAY_CONTAINER, "div", this._calHolder, 
-                                    function(n){Dom.setStyle( n, "height" , dayHeight + "px" ); } );
+                                    function(n){Dom.setStyle( n, "height" , dayHeight); } );
 
-        scrollTop = this.get("display").getDiaryScrollTop; 
-        this._calHolder.scrollTop = scrollTop; 
+        Dom.setStyle(this._calHolder, "height",(display.getDiaryHeight * Math.floor(display.getDaysInView/display.getDaysAcross)) + "px");
+        
+        scrollTop = display.getDiaryScrollTop; 
+        this._calHolder.scrollTop = scrollTop;
+
+        
 
       },
       
@@ -4102,6 +4165,107 @@ version: 1.21
       },
       
       
+      
+      /**
+       * @method _renderFooter
+       * @description Adds a footer element for status messages
+       * @protected
+       */
+      _renderFooter : function() {
+        var ftEl = document.createElement("div");
+        
+        Dom.addClass(ftEl, CLASS_DIARY_FOOTER);
+        Dom.generateId(ftEl);
+        
+        this.appendChild(ftEl);
+        
+        this._footerEl = ftEl;
+      },
+      
+      
+      
+      /**
+       * @method _setFooter
+       * @description Adds text to the footer element, and optionally hides
+       * it after hideDelay.  Called onFooterStringChange.  
+       * Animated opacity change if Anim is available.
+       * @protected
+       */      
+      _setFooter : (function() {
+       
+           // Anon function keeps single anim object and work private, re-uses
+           // anim
+            var ftEl = this._footerEl,
+                doTextChange,
+                setText = function (text) {
+                  ftEl.innerHTML = text;
+                },
+                anim = (Lang.isObject(YAHOO.util.Anim) ? new YAHOO.util.Anim(ftEl,{opacity:{to:1}}, 0.5) : false),
+                fadeTimer;
+            
+            
+            // Animated version
+            if (anim) {
+            
+              doTextChange = function (text, fadeOut) {
+                var animStartOpacity = ( fadeOut ? 1 : 0);
+         
+                Dom.setStyle(ftEl,"opacity",animStartOpacity);
+                anim.attributes.opacity.to = (1 - animStartOpacity);
+                anim.onComplete.unsubscribe(setText);
+      
+                if (animStartOpacity === 0){
+                  setText(text)
+                } else {
+                  anim.onComplete.subscribe(setText, text);
+                }
+
+                anim.animate();
+                
+              }
+            
+            
+            } else {
+            
+              // Plain version
+              doTextChange =setText;
+            
+            }
+       
+       
+            // The actual method that's set as _setFooter 
+            return function() {
+                var ftOb = this.get("footerString");
+                
+                ftEl = this._footerEl;
+
+                // Stop previously set changes:
+                if (fadeTimer) {
+                  fadeTimer.cancel();
+                  setText("");
+                }
+                
+                if (anim) {
+                  anim.setEl(ftEl);
+                  anim.stop(true);
+                }
+                
+                // chacks
+                if (ftOb.text === undefined  || !Lang.isString(ftOb.text)) {
+                  return;
+                }
+                
+                // write the text (or fade it in)
+                doTextChange(ftOb.text, ftOb.fadeOut);
+                
+                if (ftOb.hideDelay !== undefined && ftOb.hideDelay > 0) {
+                  fadeTimer = Lang.later(ftOb.hideDelay, this, function () {
+                                this.set("footerString", {text: "", fadeOut: true});
+                              }, null, false);
+                }        
+            
+          };
+      }()),
       
       /**
        * @method _renderLoading
@@ -4439,6 +4603,7 @@ version: 1.21
         for (i in this._itemHash) {
           if (Lang.isFunction(this._itemHash[i].destroy)) {
             this._itemHash[ i ].destroy();
+            delete this._itemHash[i];
           }
         }
         
@@ -4535,4 +4700,4 @@ if(YAHOO.env.ua.ie && ((!document.documentMode && YAHOO.env.ua.ie<8) || document
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.21", build: "012"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.3", build: "015"});
