@@ -2,7 +2,7 @@
 Copyright (c) 2010, Lamplight Database Systems Limited, http://www.lamplightdb.co.uk
 Code licensed under the BSD License:
 http://developer.yahoo.com/yui/license.html
-version: 1.30
+version: 1.4
 */
 
 
@@ -31,6 +31,9 @@ version: 1.30
  * v 1.3    Added footer and footerText config property.  
  *          - Added dataRequest method
  *          - Minor fixes
+ * v 1.31   Items expand or contract in width when filters are added/removed
+ * v 1.32   Added a silent parameter to DiaryItem._handleDiaryEndDrag() to prevent events.
+ * v 1.4    Added year view.  Fixed bug with multi-day items and with BST/GMT month view.
  *
  */
 (function () {
@@ -73,8 +76,11 @@ version: 1.30
         CLASS_DIARY_LOADING_HIDDEN     = "yui-diary-loading-hidden",
         CLASS_DIARY_DISPLAY            = { MONTH: "yui-diary-view-month",
                                            WEEK:  "yui-diary-view-week",
-                                           DAY:   "yui-diary-view-day"},
+                                           DAY:   "yui-diary-view-day",
+                                           YEAR:  "yui-diary-view-year"},
         CLASS_DIARY_ITEM_MONTHVIEW     = "yui-diary-item-monthview",
+        CLASS_DIARY_ITEM_YEARVIEW      = "yui-diary-item-yearview",
+        CLASS_DIARY_MONTHLABEL         = "yui-diary-rowlabel-month",
         CLASS_DIARY_GOTO_WEEK          = "yui-diary-goto-weekview",
         CLASS_DIARY_FOOTER              = "ft",
         
@@ -144,6 +150,8 @@ version: 1.30
      
         if (this.getDiary().get("display").format == "month") {
           this.addClass(CLASS_DIARY_ITEM_MONTHVIEW);
+        } else if (this.getDiary().get("display").format == "year") {
+          this.addClass(CLASS_DIARY_ITEM_YEARVIEW);
         } else if (this.dragdrop) {
             this.dragdrop.setYConstraint( 
                 this.calculateTop(), 
@@ -556,7 +564,28 @@ version: 1.30
              validator: Lang.isNumber,
              value: 20
            });    
+
+
+
+
+
+          /**
+           * @attribute visible
+           * @description  Whether this should be displayed or not
+           * @default: 20
+           * @type Number
+           */ 
+           this.setAttributeConfig( "visible", {
+             validator: Lang.isBoolean,
+             value:true,
+             method: function(v) {
+               if (!v) {
+                 this.addClass(CLASS_DIARY_ITEM_HIDDEN);
+               }
+             }
+           });    
      
+         
       },
       
       
@@ -627,7 +656,11 @@ version: 1.30
                if (that._cacheDates.diaryDisplay.format == "month") {
                   that.addClass(CLASS_DIARY_ITEM_MONTHVIEW);
                   that.setStyle("position", "relative");
+               } else if (that._cacheDates.diaryDisplay.format == "year") {
+                  that.addClass(CLASS_DIARY_ITEM_YEARVIEW);
+                  that.setStyle("position", "relative");                 
                }
+               
                return false;       
             };
 
@@ -655,8 +688,9 @@ version: 1.30
            return stopDrag();
         }
         
-        if (this._cacheDates.diaryDisplay.format == "month") {
+        if (this._cacheDates.diaryDisplay.format == "month" || this._cacheDates.diaryDisplay.format == "year") {
           this.removeClass(CLASS_DIARY_ITEM_MONTHVIEW);
+          this.removeClass(CLASS_DIARY_ITEM_YEARVIEW);
           this.setStyle("position", "absolute");
           Dom.setStyle(Dom.getAncestorByClassName(this.get("element"),CLASS_DIARYDAY_CONTAINER), "overflow", "visible");
         }
@@ -720,21 +754,23 @@ version: 1.30
        */      
       _handleDiaryDragOver: function(ev) {
 
-        if (this._cacheDates.diaryDisplay.format == "month") {
+        var mdp;
+        
+        if (this._cacheDates.diaryDisplay.format == "month" || this._cacheDates.diaryDisplay.format == "year") {
           return;
         }
-  
+        
+        mdp = this.get( "multiDayPosition" );
+          
         // change the start times if this is a one-day item, 
         //or the start of a multi-day item
-        if (this.get( "multiDayPosition" ) === false || 
-            this.get( "multiDayPosition" ) == "first") {
+        if ( mdp === false || mdp == "first") {
               
               this.getParentItem().setStartTimeSecs(this.calcStartFromPosition());
               
         }
         // change the end times if this is a one-day item, or the end of a multi-day item
-        if (this.get( "multiDayPosition" ) === false || 
-            this.get( "multiDayPosition" ) == "last") {
+        if (mdp === false || mdp == "last") {
               this.getParentItem().setEndTimeSecs(this.calcEndFromPosition());
         }
         
@@ -750,7 +786,7 @@ version: 1.30
        * @param ev Event
        * @protected
        */
-      _handleDiaryEndDrag: function(ev, type) {
+      _handleDiaryEndDrag: function(ev, type, silent) {
       
 
         var startTimeDay, element, endCol, el,
@@ -758,7 +794,10 @@ version: 1.30
             diary = this.getDiary(),
             cache = this._cacheDates,
             cacheStart = cache.DTSTART ,
-            cacheEnd   = cache.DTEND ;
+            cacheEnd   = cache.DTEND,
+            beforeEvent = true,
+            multiDayPos,
+            silent = silent || false;
       
         
 
@@ -771,20 +810,22 @@ version: 1.30
          * @param oArgs.item   DiaryItem that's being moved
          * @param oArgs.originEvent    Original event from resize/dragdrop passed through.
          */
-
+         if (!silent) {
+          beforeEvent = diary.fireEvent("itemBeforeEndMove", { 
+                  from : { DTSTART: cacheStart , 
+                           DTEND : cacheEnd 
+                  },
+                  to: { DTSTART: this.get( "DTSTART" ),
+                        DTEND  : this.get( "DTEND" ) 
+                  }, 
+                  item: this,
+                  originEvent: ev 
+              }); 
+        }
+        
         if((type == "resize" && this._locked) ||
            (type == "drag" && this.dragdrop.locked) ||
-           (false === diary.fireEvent("itemBeforeEndMove", { 
-                from : { DTSTART: cacheStart , 
-                         DTEND : cacheEnd 
-                },
-                to: { DTSTART: this.get( "DTSTART" ),
-                      DTEND  : this.get( "DTEND" ) 
-                }, 
-                item: this,
-                originEvent: ev 
-            }) 
-          )) {
+           (false === beforeEvent)) {
          
              // reset dates to where they started from:
              this.set( "DTSTART" , cacheStart );
@@ -792,6 +833,10 @@ version: 1.30
              // and tidy up:
              if (cache.diaryDisplay.format == "month") {
                 this.addClass(CLASS_DIARY_ITEM_MONTHVIEW);
+                this.setStyle("position", "relative");
+                Dom.setStyle(Dom.getAncestorByClassName(this.get("element"),CLASS_DIARYDAY_CONTAINER), "overflow", "auto");
+             } else if ( cache.diaryDisplay.format == "year") {
+                this.addClass(CLASS_DIARY_ITEM_YEARVIEW);
                 this.setStyle("position", "relative");
                 Dom.setStyle(Dom.getAncestorByClassName(this.get("element"),CLASS_DIARYDAY_CONTAINER), "overflow", "auto");
              }
@@ -806,12 +851,13 @@ version: 1.30
               this.dragdrop.lock();
             }
             
-            if (this._cacheDates.diaryDisplay.format != "month") {
+            if (this._cacheDates.diaryDisplay.format != "month" && this._cacheDates.diaryDisplay.format != "year") {
                 // change the times
-                if( this.get( "multiDayPosition" ) === false || this.get( "multiDayPosition" ) == "first" ){
+                multiDayPos = this.get( "multiDayPosition" );
+                if (multiDayPos === false || multiDayPos == "first") {
                   this.getParentItem().setStartTimeSecs( this.calcStartFromPosition() );
                 }
-                if( this.get( "multiDayPosition" ) === false || this.get( "multiDayPosition" ) == "last" ){
+                if (multiDayPos === false || multiDayPos == "last") {
                   this.getParentItem().setEndTimeSecs( this.calcEndFromPosition() );
                 }
             }
@@ -858,21 +904,26 @@ version: 1.30
          * @param oArgs.item   DiaryItem that's being moved
          * @param oArgs.originEvent    Original event from resize/dragdrop passed through.
          */
-
-        diary.fireEvent( "itemEndMove" , { 
-            from : { DTSTART: cacheStart , 
-                     DTEND : cacheEnd 
-            },
-            to: { DTSTART: this.get( "DTSTART" ),
-                  DTEND  : this.get( "DTEND" ) 
-            }, 
-            item: this,
-            originEvent: ev } 
-        );
+        if (!silent) {
+          diary.fireEvent( "itemEndMove" , { 
+              from : { DTSTART: cacheStart , 
+                       DTEND : cacheEnd 
+              },
+              to: { DTSTART: this.get( "DTSTART" ),
+                    DTEND  : this.get( "DTEND" ) 
+              }, 
+              item: this,
+              originEvent: ev } 
+          );
+        }
         
         // final tidying up
          if (cache.diaryDisplay.format == "month") {
             this.addClass(CLASS_DIARY_ITEM_MONTHVIEW);
+            this.setStyle("position", "relative");
+            Dom.setStyle(Dom.getAncestorByClassName(this.get("element"),CLASS_DIARYDAY_CONTAINER), "overflow", "auto");
+         } else if (cache.diaryDisplay.format == "year") {
+            this.addClass(CLASS_DIARY_ITEM_YEARVIEW);
             this.setStyle("position", "relative");
             Dom.setStyle(Dom.getAncestorByClassName(this.get("element"),CLASS_DIARYDAY_CONTAINER), "overflow", "auto");
          }
@@ -982,10 +1033,8 @@ version: 1.30
        * @return {Int}
        */
       getStartTimeSecs: function(){
-        var r = ( this.get( "DTSTART" ).getHours() * 3600 );
-         r += ( this.get( "DTSTART" ).getMinutes() * 60 );
-         r += ( this.get( "DTSTART" ).getSeconds() );
-         return r;
+        var s = this.get("DTSTART");
+         return (s.getHours() * 3600) + (s.getMinutes() * 60) + s.getSeconds();
       },
       
       
@@ -995,10 +1044,8 @@ version: 1.30
        * @return {Int}
        */
       getEndTimeSecs: function(){
-        var r = ( this.get( "DTEND" ).getHours() * 3600 );
-        r += ( this.get( "DTEND" ).getMinutes() * 60 );
-        r += ( this.get( "DTEND" ).getSeconds() );
-        return r;
+        var e = this.get("DTEND");
+        return (e.getHours() * 3600) + (e.getMinutes() * 60) + e.getSeconds();
       },
 
 
@@ -1011,10 +1058,8 @@ version: 1.30
        * @return {Int}
        */
       getDisplayStartTimeSecs: function(){
-        var r = ( this.get( "_displayDTSTART" ).getHours() * 3600 );
-        r += ( this.get( "_displayDTSTART" ).getMinutes() * 60 );
-        r += ( this.get( "_displayDTSTART" ).getSeconds() );
-        return r;
+        var s = this.get( "_displayDTSTART" );
+        return (s.getHours() * 3600) + (s.getMinutes() * 60) + s.getSeconds();
       },
       
       
@@ -1025,10 +1070,8 @@ version: 1.30
        * @return {Int}
        */
       getDisplayEndTimeSecs: function(){
-        var e = ( this.get( "_displayDTEND" ).getHours() * 3600 );
-        e += ( this.get( "_displayDTEND" ).getMinutes() * 60 );
-        e += ( this.get( "_displayDTEND" ).getSeconds() );
-        return e;
+        var e = this.get( "_displayDTEND" );
+        return (e.getHours() * 3600 ) + (e.getMinutes() * 60) + e.getSeconds();
       },
       
       
@@ -1163,7 +1206,7 @@ version: 1.30
 
         YAHOO.log( "DiaryItem.render()", "info");
 
-        
+
         // set the offset and width
         var lineWidth,
             w,
@@ -1173,7 +1216,7 @@ version: 1.30
         
         if (!oDetails) {
           oDetails = { 
-             linesInBlock: this.get("block")._lines.length, 
+             linesInBlock: this.get("block").getVisibleLines(),
              width: this.get("column").get("width") || 150 
           };
         }
@@ -1185,10 +1228,15 @@ version: 1.30
             t = 0;
             h = 20;
             this.setStyle("position", "relative");
+        } else if (this.getDiary().get("display").format == "year") {
+            w = Math.max(oDetails.width - 20, 10);
+            l = 2;
+            t = false;
+            h = 5;
         } else {
-            lineWidth = parseInt( ( ( oDetails.width  - 20 )/ oDetails.linesInBlock ), 10 );
+            lineWidth = parseInt(((oDetails.width  - 20 )/ Math.max(1,oDetails.linesInBlock)), 10);
             w = (lineWidth - 4 );
-            l =  parseInt( ( ( this._line ) * lineWidth ) + 20 , 10 );
+            l =  parseInt((( this.get("block").getOffset(this._line)) * lineWidth ) + 20 , 10 );
             t = parseInt( this.calculateTop() , 10 );
             h = parseInt( this.calculateHeight() , 10 );
         }
@@ -1196,7 +1244,9 @@ version: 1.30
         this.renderDetails( false );
         
         
-        this.setStyle( "top" , t + "px");
+        if ( t>= 0) {
+          this.setStyle( "top" , t + "px");
+        }
         this.setStyle( "left" , l + "px" );
         
         if( this.anim === false ) {
@@ -1253,7 +1303,7 @@ version: 1.30
  
         var item = this.getParentItem(),
         // put the actual details
-            shortText =  item.renderStartTime() + ' - ' + item.renderEndTime() + ': ' + item.get("SUMMARY") ; 
+            shortText =  item.renderStartTime() + ' - ' + item.renderEndTime() + ': ' + item.get("SUMMARY");
         
         shortText += "<br/>" + item.get("DESCRIPTION");
         
@@ -1408,7 +1458,7 @@ version: 1.30
     /**
      * The number of vertical lines in the block.
      * Array holding an objects for each line, of the form
-     * { startSecs: 123, endSecs: 456 }
+     * { startSecs: 123, endSecs: 456 , visible: true }
      * @property _lines
      * @type Array
      * @default []
@@ -1442,13 +1492,16 @@ version: 1.30
       // add a new one if needed
       if( line === false ) {
         this._lines.push({startSecs: item.getDisplayStartTimeSecs(),
-                          endSecs : item.getDisplayEndTimeSecs()});
+                          endSecs : item.getDisplayEndTimeSecs(),
+                          visible: item.get("visible")});
         line = this._lines.length - 1;
       } else {
         this._lines[line].startSecs = Math.min(this._lines[line].startSecs, 
                                                item.getDisplayStartTimeSecs());
         this._lines[line].endSecs = Math.max(this._lines[line].endSecs, 
                                              item.getDisplayEndTimeSecs());
+        this._lines[line].visible = item.get("visible") || this._lines[line].visible;
+
       }
       item.setLine( line );
     
@@ -1534,13 +1587,55 @@ version: 1.30
      * @return {Boolean}
      */    
     render: function( oCfg ){
-      var i;
+      var i, 
+          numVisibleLines = this.getVisibleLines();
       
       for( i = 0; i < this._items.length; i++ ) {
-        this._items[ i ].render( {linesInBlock: this._lines.length, 
+        this._items[ i ].render( {linesInBlock: numVisibleLines,
                                   width: oCfg.width || 150 });
       }
     },
+    
+    
+    
+    getVisibleLines : function() {
+      var i, numVisibleLines = 0;
+      
+      for (i = 0; i < this._lines.length; i++) {
+        if (this._lines[i].visible) {
+          numVisibleLines ++;
+        }
+      }
+      return numVisibleLines;
+    },
+    
+
+
+
+    /**
+     * @method getOffset
+     * @description Gives the number of visible lines across the line passed is
+     */
+    getOffset : function(line) {
+      
+      var i, visibleLine = 0;
+      
+      for (i = 0; i < this._lines.length; i++) {
+        if (this._lines[i].visible) {
+          
+          if (i == line) {
+            return visibleLine;
+          }
+          
+          visibleLine ++;
+          
+        }
+      }
+      return 0;     
+      
+    },
+    
+        
     
     /**
      * @method toString
@@ -1849,10 +1944,11 @@ version: 1.30
             baseEl = document.createElement( "div" );
         
         // container:
-        Dom.addClass( containerEl , CLASS_DIARYDAY_CONTAINER );
+        Dom.addClass(containerEl, CLASS_DIARYDAY_CONTAINER);
+        Dom.setStyle(containerEl, "line-height", null);
         
         // container for background:
-        Dom.addClass( backgroundEl, CLASS_DIARY_BACKGROUND );
+        Dom.addClass(backgroundEl, CLASS_DIARY_BACKGROUND);
        
        
         if (this.get("diary").get("display").format == "month") {
@@ -1867,6 +1963,10 @@ version: 1.30
            baseEl.innerHTML = YAHOO.util.Date.format(coldate,{format: dateFormat}, this.get("diary").get("locale"));
            backgroundEl.appendChild(baseEl);
         
+        } else if (this.get("diary").get("display").format == "year") {
+           baseEl.innerHTML = YAHOO.util.Date.format(coldate,{format: dateFormat}, this.get("diary").get("locale"));
+           backgroundEl.appendChild(baseEl);
+           Dom.setStyle(containerEl, "line-height", "20px"); 
         } else {
        
           Dom.addClass( baseEl , CLASS_DIARY_HOURBLOCK);
@@ -2280,12 +2380,8 @@ version: 1.30
                    v.getDaysAcross = 1;
                    v.getDaysInView = 1;
                    v.getOnClickFormat = {format: "week", startTime: v.startTime, endTime: v.endTime};
-                   v.getDiaryHeight = (function () {
-                     return parseInt((v.endTime - v.startTime ) * pxPerHour, 10);
-                   }());
-                   v.getDiaryScrollTop = (function () {
-                     return parseInt(v.startTime * pxPerHour, 10);
-                   }());
+                   v.getDiaryHeight = parseInt((v.endTime - v.startTime ) * pxPerHour, 10);
+                   v.getDiaryScrollTop = parseInt(v.startTime * pxPerHour, 10);
                    v.getNextFormat = "week";
                    break;
                  
@@ -2294,14 +2390,24 @@ version: 1.30
                    v.getDaysAcross = 7;
                    v.getDaysInView = 7;
                    v.getOnClickFormat = {format:"day", startTime: v.startTime, endTime: v.endTime};
-                   v.getDiaryHeight = (function () {
-                     return parseInt((v.endTime - v.startTime ) * pxPerHour, 10);
-                   }());
-                   v.getDiaryScrollTop = (function () {
-                     return parseInt(v.startTime * pxPerHour, 10);
-                   }());
+                   v.getDiaryHeight =  parseInt((v.endTime - v.startTime ) * pxPerHour, 10);
+                   v.getDiaryScrollTop = parseInt(v.startTime * pxPerHour, 10);
                    v.getNextFormat = "month";
                    break;
+                   
+                 case "year":
+                   v.getSeconds = 31536000000;
+                   v.getDaysAcross =35;
+                   v.getDaysInView = 460;
+                   v.getOnClickFormat = false;
+                   v.getDiaryHeight = 20;
+                   v.getDiaryScrollTop = 0;
+                   v.renderDateLabel = function (oDate) {return oDate.toString().substring(0, 1);};
+                   v.getNextFormat = "month";
+                   // move to start of current month
+                   this.get("startDate").setDate(1);
+                   this.set("startDate", this.get("startDate"));
+                   break;                 
                }
                
 
@@ -2558,6 +2664,9 @@ version: 1.30
        initListeners: function(){
        
           this.on( "parseData" , this.renderItems, this );
+
+          // clicks just on days
+          Ev.delegate(this.get("element"), "mousedown", this.handleDayClick, "div." + CLASS_DIARY_DAY, this, true);
           
           // click and drag new items
           Ev.delegate(this.get("element"), "mousedown", this._startNewItem, "div." + CLASS_DIARY, this, true);
@@ -2565,6 +2674,8 @@ version: 1.30
           
           // click on existing diary items
           Ev.delegate(this.get("element"), "click", this.handleItemClick, "div." + CLASS_DIARY_ITEM, this, true);
+          
+
           
           // mouseover
           Ev.delegate(this.get("element"), "mouseenter", this.handleItemMouseEnter, "div." + CLASS_DIARY_ITEM, this, true);
@@ -2601,6 +2712,7 @@ version: 1.30
               i, j = 0, 
               parent = calHolder,
               dayEl = document.createElement( "div" ),
+              monthLabelEl = document.createElement("div"),
               newDayEl , 
               zeroTime = parseInt( this.get("startDate").getTime(), 10 ),
               day,
@@ -2614,6 +2726,7 @@ version: 1.30
 
         
          Dom.addClass( calHolder, CLASS_DIARY );
+         Dom.addClass( monthLabelEl, CLASS_DIARY_MONTHLABEL);
          this._calHolder = calHolder;
 
          if (this._footerEl) {
@@ -2629,15 +2742,19 @@ version: 1.30
             jumpToWeekEl = document.createElement("div");
             Dom.addClass(jumpToWeekEl, CLASS_DIARY_GOTO_WEEK);
             jumpToWeekEl.innerHTML = "&gt;<br/>&gt;";
+            jumpToWeekEl.title = "View this week in week view";
           }
           
+          day = new Date(zeroTime); 
+          i = zeroTime ;
           // loop through from start to end adding a new DiaryDay for each
-          for( i = zeroTime ; i < limitTime ; i += 86400000 ) {
+          while(i < limitTime) {
         
             newDayEl = dayEl.cloneNode(true);
             j = Dom.generateId( newDayEl , 'day-' );
             
-            day = new Date( i );
+
+            
             this._diaryData[ i ] = new DiaryDay( newDayEl, { coldate: day , diary: this , width: this._colWidth }  );
         
             parent.appendChild( newDayEl );
@@ -2647,7 +2764,9 @@ version: 1.30
             if (dayCount%7 == 0 && displayFormat.format == "month") {
               parent.appendChild(jumpToWeekEl.cloneNode(true));
             }
-                    
+            
+            day = DM.add(day, DM.DAY, 1);
+            i = day.getTime();
           }
           
           this._renderCoreDiary();       
@@ -2910,7 +3029,7 @@ version: 1.30
                 hSecs;
             
             // month view: set times to now and +1 hour
-            if (this.get("display").format == "month") {
+            if (this.get("display").format == "month" || this.get("display").format == "year") {
               
               now = new Date();
               startHours = now.getHours();
@@ -3070,8 +3189,14 @@ version: 1.30
 
 
                   // Alter the config passed to DiaryItem:                                                            
-                  newConfig = Lang.merge(oCfg, {resizeTop: true, resizeBottom: true, enableDragDrop: true});
-                  
+                  newConfig = Lang.merge(oCfg, {
+                      resizeTop: true,
+                      resizeBottom: true, 
+                      enableDragDrop: true,
+                      useAnimation: this.get("useAnimation"),
+                      pxPerHour: this.get("pxPerHour"),
+                      useCssCategories: this.get("useCssCategories")
+                  });                  
                   
                                  
                  // Is the real start date of the item the same as the column
@@ -3256,8 +3381,8 @@ version: 1.30
          });
                      
      },
-
      
+   
      /**
       * @method handleItemMouseEnter
       * @description When a DiaryItem is mouseenter-ed.  Default behaviour
@@ -3266,7 +3391,7 @@ version: 1.30
       * the default behaviour.
       * @param ev {Event}
       * @param el {HTMLElement}
-      * @param el {HTMLElement}
+      * @param container {HTMLElement}
       * @protected
       */
      handleItemMouseEnter : function( ev, el, container ){
@@ -3299,6 +3424,30 @@ version: 1.30
          }
      },
 
+     
+     /**
+      * @method handleDayClick
+      * @description Handles clicks on the day container
+      * @public
+      * @param ev {Event}
+      * @param el {HTMLElement}
+      * @param container {HTMLElement}
+      */
+     handleDayClick: function(ev, el, container) {
+
+         /**
+          * @event dayClick
+          * @description When a day container is clicked. 
+          * @param oArgs.el    The element clicked on
+          * @param oArgs.day   A date object representing the day clicked
+          */
+       this.fireEvent("dayClick", {
+         el: el,
+         day: new Date(this._colToDayMap[el.id])
+       });
+       //Ev.stopEvent(ev);
+     },
+     
      
      /**
       * @method _handleColumnHeaderClick
@@ -3535,7 +3684,7 @@ version: 1.30
          
          this._renderLoading();
          
-         oDS.sendRequest( oDS , { success: this._parseData,            
+         oDS.sendRequest( '' , { success: this._parseData,            
                                   failure: this._dataFailed,
                                   scope: this 
          });
@@ -3601,7 +3750,7 @@ version: 1.30
                  // Add the diary item for relevant day
 
                  newData = this._parseDataUsingFieldmap(currentData);
-                 this.addItem(newData);
+                 this.addItem(newData, true);
 
                }
            } else {
@@ -3847,7 +3996,6 @@ version: 1.30
       
       /**
        * @method _renderCoreDiary
-       * @protected
        * @description Renders the Diary except for the items
        * 
        */
@@ -3987,6 +4135,7 @@ version: 1.30
         var startDate = this.get("startDate"),
             labelEl = document.createElement("span"),
             thisLabel,
+            paddEl,
             dayCounter = 0,
             dayLabels = Dom.getElementsByClassName( 
                 CLASS_DIARY_COLLABEL_CONTAINER, 
@@ -4000,6 +4149,13 @@ version: 1.30
 
         Dom.addClass( labelEl, CLASS_DIARY_COLLABEL);
         Dom.setStyle( labelEl, "width" , (this._colWidth - 4) + "px");
+        
+        if (this.get("display").format == "year") {
+          paddEl = document.createElement("span");
+          paddEl.innerHTML = "&nbsp;";
+          Dom.setStyle(paddEl, "width", "50px");
+          dayLabels.appendChild(paddEl);
+        }
 
         // go through the days adding labels:
         for (dayCounter = 0; dayCounter < this.get("display").getDaysAcross; dayCounter += 1 ) {
@@ -4134,7 +4290,8 @@ version: 1.30
         for(i = zeroTime; i < limitTime ; i += 86400000 ) {
       
           if( this._diaryData[ i ] !== undefined ) {
- 
+             
+             this._diaryData[ i ]._rebuildBlocks();
              this._diaryData[ i ].render();
           
           }
@@ -4142,6 +4299,29 @@ version: 1.30
         }
 
          
+      },
+      
+      
+      
+      
+      /**
+       * @method rebuildColumns
+       * @description Goes through existing data and updates columns and blocks
+       * - useful for visibility changes of items
+       * @public
+       */
+      rebuildColumns : function () {
+      
+        var i = 0,
+            dData = this._diaryData;
+
+        for (i in dData) {
+           if (dData[i]._rebuildBlocks !== undefined){
+             dData[i]._rebuildBlocks();
+             dData[i]._renderBlocks()
+           }
+        }
+      
       },
       
       
@@ -4271,7 +4451,6 @@ version: 1.30
        * @method _renderLoading
        * @description Adds a div with a 'loading' class to indicate data's on 
        * it's way.  
-       * @protected
        * @TODO Sort out - messes with navigation currently...
        */
       _renderLoading : function() {
@@ -4336,11 +4515,16 @@ version: 1.30
         // set the new col width
         this.set("scaleColumns", this.get("scaleColumns"), true);
 
-        if (format !== "month") { 
+        if (format !== "month" && format !== "year") { 
         
           this.unlock(true, false);
           Dom.getElementsByClassName(CLASS_DIARY_ITEM, "div", this.get("element"), 
                                      function (n) {Dom.removeClass(n, CLASS_DIARY_ITEM_MONTHVIEW);});
+        }
+        if (format == "year") {
+          this.setStyle("line-height", "20px");
+        } else {
+          this.setStyle("line-height", null);
         }
         
         this._reDo(newDataNeeded);
@@ -4444,9 +4628,13 @@ version: 1.30
         for( i = 0; i < items.length; i++ ){
 
              Dom.addClass( items[i], CLASS_DIARY_ITEM_HIDDEN);
+             this._itemHash[items[i].id].set("visible", false);
 
         }
         this._filters[ selector ] = true;
+
+        // make remaining ones wider:
+        this.rebuildColumns();
         
         return i;
       
@@ -4486,11 +4674,16 @@ version: 1.30
         for( i = 0; i < items.length; i++ ){
           if (itemsToRemoveFilter === false) {
             Dom.removeClass(items[i], CLASS_DIARY_ITEM_HIDDEN);
+            this._itemHash[items[i].id].set("visible", true);
           } else if ( !Selector.test(items[i], itemsToRemoveFilter)) {
             Dom.removeClass(items[i], CLASS_DIARY_ITEM_HIDDEN);
+            this._itemHash[items[i].id].set("visible", true);
           }
           
         }
+        
+        // make remaining ones smaller:
+        this.rebuildColumns();
         
         return i;      
       },
@@ -4700,4 +4893,4 @@ if(YAHOO.env.ua.ie && ((!document.documentMode && YAHOO.env.ua.ie<8) || document
       
 })();
 YAHOO.namespace( "widget" );
-YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.3", build: "015"});
+YAHOO.register("diary", YAHOO.widget.Diary, {version: "1.4", build: "016"});
